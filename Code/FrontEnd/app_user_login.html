@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Login</title>
+    <script src="app_user_login_script.js" defer></script>
+    <link rel="stylesheet" href="app_user_login.css">
+</head>
+
+<body>
+    <!-- Top bar -->
+    <div class="top-bar">
+        <button id="adminLoginBtn">Admin Log-in</button>
+    </div>
+
+    <!-- Main container -->
+    <div class="container">
+        <h1>User Login</h1>
+
+        <div class="input-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" placeholder="Enter username" autocomplete="off">
+        </div>
+
+        <div class="input-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" placeholder="Enter password" autocomplete="off">
+        </div>
+
+        <div class="button-group">
+            <button id="loginBtn">Login</button>
+        </div>
+
+        <p id="message"></p>
+    </div>
+</body>
+</html>
