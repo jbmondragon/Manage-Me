@@ -18,3 +18,10 @@ yarn-error.log*
 # OS-specific
 .DS_Store
 Thumbs.db
+
+# Database / Schema
+*.sql
+*.sqlite
+*.db
+schema.prisma
+prisma/migrations/
