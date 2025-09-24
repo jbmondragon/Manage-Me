@@ -44,7 +44,7 @@ app.post('/login', async (req, res) => {
     );
 
     if (result.rows.length > 0) {
-      res.json({ success: true, message: 'Login successful!' });
+      res.json({ success: true, message: 'Ka cute ni Jake!' });
     } else {
       res.json({ success: false, message: 'Invalid username or password.' });
     }
@@ -72,7 +72,7 @@ app.post('/admin/login', async (req, res) => {
     );
 
     if (result.rows.length > 0) {
-      res.json({ success: true, message: 'Admin login successful!' });
+      res.json({ success: true, message: 'Ka cute ni Jake!' });
     } else {
       res.json({ success: false, message: 'Invalid admin credentials.' });
     }
