@@ -19,8 +19,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
       const data = await response.json();
 
-      // Show message returned from server
-      document.getElementById('message').innerText = data.message;
+        if (data.success) {
+          window.location.href = '/user/home';
+        } else {
+          // ❌ Show error message
+          document.getElementById('message').innerText = data.message;
+        }
 
     } catch (err) {
       console.error('Error connecting to server:', err);

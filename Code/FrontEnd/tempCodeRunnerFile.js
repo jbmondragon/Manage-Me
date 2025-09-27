@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     try {
       // Send login request to server
-      const response = await fetch('/admin/login', {
+      const response = await fetch('/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
@@ -20,13 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const data = await response.json();
 
       // Show message returned from server
-      //document.getElementById('message').innerText = data.message;
-        if (data.success) {
-          window.location.href = '/admin/home';
-        } else {
-          // ❌ Show error message
-          document.getElementById('message').innerText = data.message;
-        }
+      document.getElementById('message').innerText = data.message;
 
     } catch (err) {
       console.error('Error connecting to server:', err);
@@ -35,15 +29,15 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-
 // homepage_script.js
 document.addEventListener('DOMContentLoaded', function() {
-  const adminBtn = document.getElementById('userLoginBtn');
+  const adminBtn = document.getElementById('adminLoginBtn');
 
   adminBtn.addEventListener('click', function() {
     // Redirect to admin login page
-    window.location.href = '/';
+    window.location.href = '/admin';
   });
 });
+
 
 console.log("admin_script.js loaded");

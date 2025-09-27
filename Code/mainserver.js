@@ -33,6 +33,16 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'FrontEnd', 'app_user_login.html'));
 });
 
+// Admin home route
+app.get('/user/home', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'user_home.html'));
+});
+
+// Admin home route
+app.get('/admin/home', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'admin_home.html'));
+});
+
 // Login app_user route
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
@@ -81,6 +91,8 @@ app.post('/admin/login', async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+
+
 
 
 // Helper to get local LAN IP
