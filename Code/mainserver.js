@@ -43,6 +43,11 @@ app.get('/admin/home', (req, res) => {
   res.sendFile(path.join(__dirname, 'FrontEnd', 'admin_home.html'));
 });
 
+// Admin home route
+app.get('/admin/home/members', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'members.html'));
+});
+
 // Login app_user route
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
