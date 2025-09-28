@@ -48,6 +48,18 @@ app.get('/admin/home/members', (req, res) => {
   res.sendFile(path.join(__dirname, 'FrontEnd', 'members.html'));
 });
 
+// Admin addMember route
+app.get('/admin/home/members/addMembers', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'addMembers.html'));
+});
+
+// Admin viewMember route
+app.get('/admin/home/members/viewMembers', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'viewMembers.html'));
+});
+
+
+
 // Login app_user route
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
@@ -67,6 +79,85 @@ app.post('/login', async (req, res) => {
     console.error('Database error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
+});
+
+// route for add member
+app.post('/admin/home/members/add', async (req, res) => {
+  const { studentNumber, lastName, firstName, middleName, sex, section, email } = req.body;
+
+  // Regex validation
+  const studentNumberRegex = /^[0-9]{12}$/;
+  const nameRegex = /^[a-zA-Z\s\-]{1,50}$/;
+  const sexRegex = /^(Male|Female|Other)$/i;
+  const sectionRegex = /^[A-Za-z0-9]{1,10}$/; // allow lowercase and uppercase
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (
+    !studentNumberRegex.test(studentNumber) ||
+    !nameRegex.test(lastName) ||
+    !nameRegex.test(firstName) ||
+    (middleName && !nameRegex.test(middleName)) ||
+    !sexRegex.test(sex) ||
+    !sectionRegex.test(section) ||
+    !emailRegex.test(email)
+  ) {
+    return res.json({ success: false, message: 'Invalid input format.' });
+  }
+
+  try {
+    // Check for existing student number
+    const existing = await pool.query('SELECT * FROM students WHERE sid = $1', [studentNumber]);
+    if (existing.rows.length > 0) {
+      return res.json({ success: false, message: 'Student number already exists.' });
+    }
+
+    // Insert member
+    await pool.query(
+      `INSERT INTO students (sid, last_name, first_name, middle_name, sex, section, email)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [studentNumber, lastName, firstName, middleName || '', sex, section, email]
+    );
+
+    res.json({ success: true, message: 'Member added successfully!' });
+  } catch (err) {
+    console.error('Database error:', err);
+    res.json({ success: false, message: 'Failed to add member.' });
+  }
+});
+
+// Get all members
+app.get('/admin/home/members/list', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM students ORDER BY last_name, first_name');
+    res.json({ success: true, members: result.rows });
+  } catch (err) {
+    console.error('Database error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch members' });
+  }
+});
+
+
+// Delete member by sid
+app.delete('/admin/home/members/delete/:sid', async (req, res) => {
+  const { sid } = req.params;
+  try {
+    await pool.query('DELETE FROM students WHERE sid = $1', [sid]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Database error:', err);
+    res.json({ success: false, message: 'Failed to delete member' });
+  }
+});
+
+// Edit member (GET for details, POST/PUT for update)
+app.get('/admin/home/members/edit', async (req, res) => {
+  const { sid } = req.query;
+  // return member data for editing
+});
+
+app.post('/admin/home/members/edit', async (req, res) => {
+  const { sid, last_name, first_name, middle_name, suffix, sex, section, email } = req.body;
+  // update member in database
 });
 
 
