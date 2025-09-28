@@ -19,12 +19,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
       const data = await response.json();
 
-      // Show message returned from server
-      //document.getElementById('message').innerText = data.message;
         if (data.success) {
           window.location.href = '/admin/home';
         } else {
-          // ❌ Show error message
           document.getElementById('message').innerText = data.message;
         }
 
@@ -45,5 +42,3 @@ document.addEventListener('DOMContentLoaded', function() {
     window.location.href = '/';
   });
 });
-
-console.log("admin_script.js loaded");

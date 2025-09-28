@@ -28,39 +28,41 @@ const pool = new Pool({
   port: process.env.POSTGRES_PORT || 5432,
 });
 
-// Route for homepage
+
+
+// Route for Admin Log-in Page (SID1)
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'admin_login.html'));
+});
+
+/***************************Login admin route*****************************************/
+app.post('/admin/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    // Example: if you store admins in a separate table
+    const result = await pool.query(
+      'SELECT * FROM admin WHERE username = $1 AND password = $2',
+      [username, password]
+    );
+
+    if (result.rows.length > 0) {
+      res.json({ success: true, message: 'Ka cute ni Jake!' });
+    } else {
+      res.json({ success: false, message: 'Invalid admin credentials.' });
+    }
+  } catch (err) {
+    console.error('Database error (admin login):', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Route for User Log-in Page (SID3)
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'FrontEnd', 'app_user_login.html'));
 });
 
-// Admin home route
-app.get('/user/home', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'user_home.html'));
-});
-
-// Admin home route
-app.get('/admin/home', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'admin_home.html'));
-});
-
-// Admin home route
-app.get('/admin/home/members', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'members.html'));
-});
-
-// Admin addMember route
-app.get('/admin/home/members/addMembers', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'addMembers.html'));
-});
-
-// Admin viewMember route
-app.get('/admin/home/members/viewMembers', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'viewMembers.html'));
-});
-
-
-
-// Login app_user route
+/***************************Login app_user route*****************************************/
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -81,7 +83,32 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// route for add member
+// Route for User Home Page
+app.get('/user/home', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'user_home.html'));
+});
+
+// Route for Admin Home Page
+app.get('/admin/home', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'admin_home.html'));
+});
+
+// Route for Admin Member Page
+app.get('/admin/home/members', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'members.html'));
+});
+
+// Route for Admin Add Member Page
+app.get('/admin/home/members/addMembers', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'addMembers.html'));
+});
+
+// Route for Admin View Member Page
+app.get('/admin/home/members/viewMembers', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'viewMembers.html'));
+});
+
+/***************************Route for add member*****************************************/
 app.post('/admin/home/members/add', async (req, res) => {
   const { studentNumber, lastName, firstName, middleName, sex, section, email } = req.body;
 
@@ -125,7 +152,7 @@ app.post('/admin/home/members/add', async (req, res) => {
   }
 });
 
-// Get all members
+/***************************View All member*****************************************/
 app.get('/admin/home/members/list', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM students ORDER BY last_name, first_name');
@@ -137,7 +164,7 @@ app.get('/admin/home/members/list', async (req, res) => {
 });
 
 
-// Delete member by sid
+/***************************Delete member by sid*****************************************/
 app.delete('/admin/home/members/delete/:sid', async (req, res) => {
   const { sid } = req.params;
   try {
@@ -149,47 +176,17 @@ app.delete('/admin/home/members/delete/:sid', async (req, res) => {
   }
 });
 
-// Edit member (GET for details, POST/PUT for update)
+/***************************Edit member (GET for details, POST/PUT for update*****************************************/
 app.get('/admin/home/members/edit', async (req, res) => {
   const { sid } = req.query;
   // return member data for editing
 });
 
+/***************************Update Member*****************************************/
 app.post('/admin/home/members/edit', async (req, res) => {
   const { sid, last_name, first_name, middle_name, suffix, sex, section, email } = req.body;
   // update member in database
 });
-
-
-// Route for admin (login page)
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'admin_login.html'));
-});
-
-// Admin login route
-app.post('/admin/login', async (req, res) => {
-  const { username, password } = req.body;
-
-  try {
-    // Example: if you store admins in a separate table
-    const result = await pool.query(
-      'SELECT * FROM admin WHERE username = $1 AND password = $2',
-      [username, password]
-    );
-
-    if (result.rows.length > 0) {
-      res.json({ success: true, message: 'Ka cute ni Jake!' });
-    } else {
-      res.json({ success: false, message: 'Invalid admin credentials.' });
-    }
-  } catch (err) {
-    console.error('Database error (admin login):', err);
-    res.status(500).json({ success: false, message: 'Server error' });
-  }
-});
-
-
-
 
 // Helper to get local LAN IP
 function getLocalIP() {
