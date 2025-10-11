@@ -1,11 +1,11 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  // Back button navigation
+  // --- Back button navigation ---
   const backBtn = document.getElementById('backBtn');
   backBtn?.addEventListener('click', () => {
     window.location.href = '/admin/home/accountability';
   });
 
-  // Container for event list
+  // --- Container for event list ---
   const eventsList = document.querySelector('.events-list');
   if (!eventsList) return;
 
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const data = await response.json();
 
     if (data.success && Array.isArray(data.events)) {
-      eventsList.innerHTML = ''; // clear placeholder
+      eventsList.innerHTML = ''; // Clear placeholder content
 
       if (data.events.length === 0) {
         eventsList.innerHTML = '<p>No events found.</p>';
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
           try {
             const delResponse = await fetch(`/admin/home/events/delete/${event.eid}`, {
-              method: 'DELETE'
+              method: 'DELETE',
             });
             const delData = await delResponse.json();
 
@@ -65,7 +65,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // --- Edit functionality ---
         const editBtn = eventDiv.querySelector('.edit');
         editBtn.addEventListener('click', () => {
-          window.location.href = `/admin/home/events/edit?eid=${event.eid}`;
+          // Redirect to your specified edit page
+          window.location.href = `/admin/home/event/editMembers?eid=${event.eid}`;
         });
       });
     } else {

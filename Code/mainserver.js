@@ -247,8 +247,6 @@ app.get('/admin/home/members/get/:sid', async (req, res) => {
 });
 
 
-
-
 // Route for Admin Accountability Page
 app.get('/admin/home/accountability', (req, res) => {
   res.sendFile(path.join(__dirname, 'FrontEnd', 'accountability_home.html'));
@@ -318,7 +316,7 @@ app.get('/admin/home/events/list', async (req, res) => {
   }
 });
 
-/***************************Delete member by sid*****************************************/
+/***************************Delete Event by eid*****************************************/
 app.delete('/admin/home/events/delete/:eid', async (req, res) => {
   const { eid } = req.params;
   try {
@@ -329,6 +327,72 @@ app.delete('/admin/home/events/delete/:eid', async (req, res) => {
     res.json({ success: false, message: 'Failed to delete event' });
   }
 });
+
+// Route for Admin Edit Event Page
+app.get('/admin/home/event/editMembers', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'editEvent.html'));
+});
+
+/*************************** Route for alter (update) event information *****************************************/
+app.post('/admin/home/events/alter', async (req, res) => {
+  const { eventId, nameOfEvent, startDate, endDate, amount } = req.body;
+
+  // Regex validation
+  const eventIdRegex = /^[0-9]+$/;
+  const nameRegex = /^[a-zA-Z0-9\s.,!?()\-]{1,100}$/;
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/; // yyyy-mm-dd
+  const amountRegex = /^\d+(\.\d{1,2})?$/; // e.g. 1000 or 99.99
+
+  if (
+    !eventIdRegex.test(eventId) ||
+    !nameRegex.test(nameOfEvent) ||
+    !dateRegex.test(startDate) ||
+    !dateRegex.test(endDate) ||
+    !amountRegex.test(amount)
+  ) {
+    return res.json({ success: false, message: 'Invalid input format.' });
+  }
+
+  try {
+    // Check if event exists
+    const existing = await pool.query('SELECT * FROM events WHERE eid = $1', [eventId]);
+    if (existing.rows.length === 0) {
+      return res.json({ success: false, message: 'Event not found.' });
+    }
+
+    // Update event information
+    await pool.query(
+      `UPDATE events
+       SET event_name = $2,
+           start_date = $3,
+           end_date = $4,
+           amount = $5
+       WHERE eid = $1`,
+      [eventId, nameOfEvent, startDate, endDate, amount]
+    );
+
+    res.json({ success: true, message: 'Event information updated successfully!' });
+  } catch (err) {
+    console.error('Database error:', err);
+    res.json({ success: false, message: 'Failed to update event information.' });
+  }
+});
+
+/*************************** Route for get event by ID *****************************************/
+app.get('/admin/home/events/get/:eid', async (req, res) => {
+  const { eid } = req.params;
+  try {
+    const result = await pool.query('SELECT * FROM events WHERE eid = $1', [eid]);
+    if (result.rows.length === 0) {
+      return res.json({ success: false, message: 'Event not found.' });
+    }
+    res.json({ success: true, event: result.rows[0] });
+  } catch (err) {
+    console.error('Database error:', err);
+    res.json({ success: false, message: 'Failed to retrieve event.' });
+  }
+});
+
 
 
 // Helper to get local LAN IP

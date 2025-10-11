@@ -1,1 +1,1 @@
-/admin/home/accountability
+/admin/home/events/list
