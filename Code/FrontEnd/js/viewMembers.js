@@ -51,10 +51,11 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         });
 
-        // --- Edit functionality (optional) ---
+        // --- Edit functionality (redirect to editMembers route) ---
         const editBtn = memberDiv.querySelector('.edit');
         editBtn.addEventListener('click', () => {
-          window.location.href = `/admin/home/members/edit?sid=${member.sid}`;
+          // Redirect to the editMembers page with the student's sid as a query parameter
+          window.location.href = `/admin/home/members/editMembers?sid=${member.sid}`;
         });
       });
     } else {

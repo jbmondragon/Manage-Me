@@ -176,17 +176,77 @@ app.delete('/admin/home/members/delete/:sid', async (req, res) => {
   }
 });
 
-/***************************Edit member (GET for details, POST/PUT for update*****************************************/
-app.get('/admin/home/members/edit', async (req, res) => {
-  const { sid } = req.query;
-  // return member data for editing
+// Route for Admin Edit Member Page
+app.get('/admin/home/members/editMembers', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'editMembers.html'));
 });
 
-/***************************Update Member*****************************************/
-app.post('/admin/home/members/edit', async (req, res) => {
-  const { sid, last_name, first_name, middle_name, suffix, sex, section, email } = req.body;
-  // update member in database
+/***************************Route for alter (update) member information*****************************************/
+app.post('/admin/home/members/alter', async (req, res) => {
+  const { studentNumber, lastName, firstName, middleName, sex, section, email } = req.body;
+
+  // Regex validation
+  const studentNumberRegex = /^[0-9]{12}$/;
+  const nameRegex = /^[a-zA-Z\s\-]{1,50}$/;
+  const sexRegex = /^(Male|Female|Other)$/i;
+  const sectionRegex = /^[A-Za-z0-9]{1,10}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (
+    !studentNumberRegex.test(studentNumber) ||
+    !nameRegex.test(lastName) ||
+    !nameRegex.test(firstName) ||
+    (middleName && !nameRegex.test(middleName)) ||
+    !sexRegex.test(sex) ||
+    !sectionRegex.test(section) ||
+    !emailRegex.test(email)
+  ) {
+    return res.json({ success: false, message: 'Invalid input format.' });
+  }
+
+  try {
+    // Check if student exists
+    const existing = await pool.query('SELECT * FROM students WHERE sid = $1', [studentNumber]);
+    if (existing.rows.length === 0) {
+      return res.json({ success: false, message: 'Student number not found.' });
+    }
+
+    // Update member information
+    await pool.query(
+      `UPDATE students
+       SET last_name = $2,
+           first_name = $3,
+           middle_name = $4,
+           sex = $5,
+           section = $6,
+           email = $7
+       WHERE sid = $1`,
+      [studentNumber, lastName, firstName, middleName || '', sex, section, email]
+    );
+
+    res.json({ success: true, message: 'Member information updated successfully!' });
+  } catch (err) {
+    console.error('Database error:', err);
+    res.json({ success: false, message: 'Failed to update member information.' });
+  }
 });
+
+/***************************Route for get member by ID*****************************************/
+app.get('/admin/home/members/get/:sid', async (req, res) => {
+  const { sid } = req.params;
+  try {
+    const result = await pool.query('SELECT * FROM students WHERE sid = $1', [sid]);
+    if (result.rows.length === 0) {
+      return res.json({ success: false, message: 'Member not found.' });
+    }
+    res.json({ success: true, member: result.rows[0] });
+  } catch (err) {
+    console.error('Database error:', err);
+    res.json({ success: false, message: 'Failed to retrieve member.' });
+  }
+});
+
+
 
 
 // Route for Admin Accountability Page
@@ -260,7 +320,7 @@ app.get('/admin/home/events/list', async (req, res) => {
 
 /***************************Delete member by sid*****************************************/
 app.delete('/admin/home/events/delete/:eid', async (req, res) => {
-  const { eid } = req.params; //
+  const { eid } = req.params;
   try {
     await pool.query('DELETE FROM events WHERE eid = $1', [eid]);
     res.json({ success: true });
