@@ -188,6 +188,89 @@ app.post('/admin/home/members/edit', async (req, res) => {
   // update member in database
 });
 
+
+// Route for Admin Accountability Page
+app.get('/admin/home/accountability', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'accountability_home.html'));
+});
+
+// Route for Admin Add Event Page
+app.get('/admin/home/accountability/addEvent', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'addEvent.html'));
+});
+
+/***************************Add Event*****************************************/
+app.post('/admin/home/events/add', async (req, res) => {
+  const { nameOfEvent, startDate, endDate, amount } = req.body;
+
+  const nameRegex = /^[a-zA-Z0-9\s\-'"(),.&]{3,100}$/;
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  const amountRegex = /^\d+(\.\d{1,2})?$/;
+
+  if (
+    !nameRegex.test(nameOfEvent) ||
+    !dateRegex.test(startDate) ||
+    !dateRegex.test(endDate) ||
+    !amountRegex.test(amount)
+  ) {
+    return res.json({ success: false, message: 'Invalid input format.' });
+  }
+
+  try {
+    // Check if event name already exists
+    const existing = await pool.query('SELECT * FROM events WHERE event_name = $1', [nameOfEvent]);
+    if (existing.rows.length > 0) {
+      return res.json({ success: false, message: 'Event already exists.' });
+    }
+
+    // Insert event into database
+    await pool.query(
+      `INSERT INTO events (event_name, start_date, end_date, amount)
+       VALUES ($1, $2, $3, $4)`,
+      [nameOfEvent, startDate, endDate, amount]
+    );
+
+    res.json({ success: true, message: 'Event added successfully!' });
+  } catch (err) {
+    console.error('Database error:', err);
+    res.json({ success: false, message: 'Failed to add event.' });
+  }
+});
+
+// Route for Admin View Event Page
+app.get('/admin/home/accountability/viewEvent', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'viewEvent.html'));
+});
+
+/*************************** View All Events *****************************************/
+app.get('/admin/home/events/list', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT * 
+      FROM events 
+      ORDER BY start_date ASC, end_date ASC;
+    `);
+
+    res.json({ success: true, events: result.rows });
+  } catch (err) {
+    console.error('Database error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch events' });
+  }
+});
+
+/***************************Delete member by sid*****************************************/
+app.delete('/admin/home/events/delete/:eid', async (req, res) => {
+  const { eid } = req.params; //
+  try {
+    await pool.query('DELETE FROM events WHERE eid = $1', [eid]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Database error:', err);
+    res.json({ success: false, message: 'Failed to delete event' });
+  }
+});
+
+
 // Helper to get local LAN IP
 function getLocalIP() {
   const interfaces = os.networkInterfaces();

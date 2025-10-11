@@ -15,3 +15,13 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.href = '/admin/home/members';
   });
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+  const logoutBtn = document.getElementById('accountabilityBtn');
+  if (!logoutBtn) return;
+
+  logoutBtn.addEventListener('click', () => {
+    window.location.href = '/admin/home/accountability';
+  });
+});
+
