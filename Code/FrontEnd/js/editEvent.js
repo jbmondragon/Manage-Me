@@ -78,6 +78,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // --- Back button ---
   backBtn?.addEventListener("click", () => {
-    window.location.href = "/admin/home";
+    window.location.href = "/admin/home/accountability";
   });
 });

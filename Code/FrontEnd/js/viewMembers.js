@@ -1,26 +1,68 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const backBtn = document.getElementById('backBtn');
+  const membersList = document.querySelector('.members-list');
+  const filterSelect = document.getElementById('filterSelect');
+  const searchInput = document.getElementById('searchInput');
+  const searchBtn = document.getElementById('searchBtn');
+
   if (backBtn) {
     backBtn.addEventListener('click', () => {
       window.location.href = '/admin/home';
     });
   }
 
-  const membersList = document.querySelector('.members-list');
-
   try {
     const response = await fetch('/admin/home/members/list');
     const data = await response.json();
 
-    if (data.success) {
-      membersList.innerHTML = ''; // clear placeholder
+    if (!data.success) {
+      membersList.innerHTML = `<div class="error">${data.message}</div>`;
+      return;
+    }
 
-      data.members.forEach(member => {
+    const members = data.members;
+
+    // --- Extract unique sections from members ---
+    const sections = [...new Set(members.map(m => m.section).filter(Boolean))];
+
+    // --- Populate dropdown dynamically ---
+    filterSelect.innerHTML = `<option value="all">All sections</option>`;
+    sections.forEach(section => {
+      const option = document.createElement('option');
+      option.value = section;
+      option.textContent = section;
+      filterSelect.appendChild(option);
+    });
+
+    // --- Function to render members ---
+    const renderMembers = (filter = 'all', search = '') => {
+      membersList.innerHTML = '';
+
+      const filtered = members.filter(member => {
+        const inSection = filter === 'all' || member.section === filter;
+        const searchLower = search.toLowerCase();
+        const inSearch =
+          !search ||
+          member.sid.toString().includes(search) ||
+          member.first_name.toLowerCase().includes(searchLower) ||
+          member.last_name.toLowerCase().includes(searchLower);
+        return inSection && inSearch;
+      });
+
+      if (filtered.length === 0) {
+        membersList.innerHTML = `<div class="no-results">No members found.</div>`;
+        return;
+      }
+
+      filtered.forEach(member => {
         const memberDiv = document.createElement('div');
         memberDiv.classList.add('member');
 
         memberDiv.innerHTML = `
-          <span>${member.sid} - ${member.last_name}, ${member.first_name} ${member.middle_name || ''}</span>
+          <span>
+            ${member.sid} - ${member.last_name}, ${member.first_name} ${member.middle_name || ''}
+            <small>(${member.section || 'No section'})</small>
+          </span>
           <div class="actions">
             <button class="edit">edit</button>
             <button class="delete">delete</button>
@@ -40,7 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               const delData = await delResponse.json();
               if (delData.success) {
                 alert('Member deleted successfully');
-                memberDiv.remove(); // remove member from DOM
+                memberDiv.remove();
               } else {
                 alert(delData.message);
               }
@@ -51,16 +93,36 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         });
 
-        // --- Edit functionality (redirect to editMembers route) ---
+        // --- Edit functionality ---
         const editBtn = memberDiv.querySelector('.edit');
         editBtn.addEventListener('click', () => {
-          // Redirect to the editMembers page with the student's sid as a query parameter
           window.location.href = `/admin/home/members/editMembers?sid=${member.sid}`;
         });
       });
-    } else {
-      membersList.innerHTML = `<div class="error">${data.message}</div>`;
-    }
+    };
+
+    // Initial render
+    renderMembers();
+
+    // --- Filter by section ---
+    filterSelect.addEventListener('change', () => {
+      renderMembers(filterSelect.value, searchInput.value.trim());
+    });
+
+    // --- Search button ---
+    searchBtn.addEventListener('click', e => {
+      e.preventDefault(); // prevents form submission if inside a form
+      renderMembers(filterSelect.value, searchInput.value.trim());
+    });
+
+    // --- Enter key triggers search ---
+    searchInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        searchBtn.click();
+      }
+    });
+
   } catch (err) {
     console.error('Error fetching members:', err);
     membersList.innerHTML = `<div class="error">Failed to load members</div>`;
