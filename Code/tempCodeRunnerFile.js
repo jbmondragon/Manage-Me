@@ -1,1 +1,1 @@
-/admin/home/events/list
+/admin/home/accountability/viewEvent

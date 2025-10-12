@@ -394,6 +394,70 @@ app.get('/admin/home/events/get/:eid', async (req, res) => {
 });
 
 
+// Route for Admin Homecoming Page
+app.get('/admin/homecoming', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'homecoming_home.html'));
+});
+
+
+
+// Route for Admin Homecoming Page
+app.get('/admin/homecoming/addHomecoming', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'addHomecoming.html'));
+});
+
+
+/*************************** Add Homecoming Event *****************************************/
+app.post('/admin/home/homecoming/add', async (req, res) => {
+  const { eventName, theme, dateTime, venue } = req.body;
+
+  // Validation regex patterns
+  const nameRegex = /^[a-zA-Z0-9\s\-'"(),.&]{3,100}$/;  // letters, digits, punctuation
+  const themeRegex = /^[a-zA-Z0-9\s\-'"(),.&]{3,150}$/;
+  const venueRegex = /^[a-zA-Z0-9\s\-'"(),.&]{3,150}$/;
+  const dateTimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/; // datetime-local format
+
+  // Validate all inputs
+  if (
+    !nameRegex.test(eventName) ||
+    !themeRegex.test(theme) ||
+    !venueRegex.test(venue) ||
+    !dateTimeRegex.test(dateTime)
+  ) {
+    return res.json({ success: false, message: 'Invalid input format.' });
+  }
+
+  try {
+    // Check if homecoming event already exists
+    const existing = await pool.query('SELECT * FROM homecoming WHERE event_name = $1', [eventName]);
+    if (existing.rows.length > 0) {
+      return res.json({ success: false, message: 'Homecoming event already exists.' });
+    }
+
+    // Insert new homecoming event
+    await pool.query(
+      `INSERT INTO homecoming (event_name, theme, date_time, venue)
+       VALUES ($1, $2, $3, $4)`,
+      [eventName, theme, dateTime.replace('T', ' '), venue]
+    );
+
+    res.json({ success: true, message: 'Homecoming event added successfully!' });
+  } catch (err) {
+    console.error('Database error:', err);
+    res.json({ success: false, message: 'Failed to add homecoming event.' });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
 
 // Helper to get local LAN IP
 function getLocalIP() {

@@ -8,20 +8,32 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-  const logoutBtn = document.getElementById('membersBtn');
-  if (!logoutBtn) return;
+  const membersBtn = document.getElementById('membersBtn');
+  if (!membersBtn) return;
 
-  logoutBtn.addEventListener('click', () => {
+  membersBtn.addEventListener('click', () => {
     window.location.href = '/admin/home/members';
   });
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-  const logoutBtn = document.getElementById('accountabilityBtn');
-  if (!logoutBtn) return;
+  const accountabilityBtn = document.getElementById('accountabilityBtn');
+  if (!accountabilityBtn) return;
 
-  logoutBtn.addEventListener('click', () => {
+  accountabilityBtn.addEventListener('click', () => {
     window.location.href = '/admin/home/accountability';
+  });
+});
+
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  const alumniHomecomingBtn = document.getElementById('alumniHomecomingBtn');
+  if (!alumniHomecomingBtn) return;
+
+  alumniHomecomingBtn.addEventListener('click', () => {
+    window.location.href = '/admin/homecoming';
   });
 });
 
