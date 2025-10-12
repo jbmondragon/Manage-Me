@@ -77,3 +77,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     eventsList.innerHTML = `<div class="error">Failed to load events.</div>`;
   }
 });
+
+/admin/home/homecoming/edit

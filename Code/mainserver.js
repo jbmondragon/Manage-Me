@@ -471,6 +471,62 @@ app.get('/admin/home/homecoming/list', async (req, res) => {
 
 
 
+// Route for Admin Edit Event Page
+app.get('/admin/home/homecoming/edit', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'editHomecoming.html'));
+});
+
+/*************************** Route for get homecoming by ID *****************************************/
+app.get('/admin/home/homecoming/get/:hid', async (req, res) => {
+  const { hid } = req.params;
+
+  try {
+    const result = await pool.query('SELECT * FROM homecoming WHERE hid = $1', [hid]);
+
+    if (result.rows.length === 0) {
+      return res.json({ success: false, message: 'Homecoming event not found.' });
+    }
+
+    res.json({ success: true, event: result.rows[0] });
+  } catch (err) {
+    console.error('Database error:', err);
+    res.json({ success: false, message: 'Failed to retrieve Homecoming event.' });
+  }
+});
+
+/***************************Update Homecoming event by ID *****************************************/
+app.post('/admin/home/homecoming/alter', async (req, res) => {
+  const { hid, eventName, theme, dateTime, venue } = req.body;
+
+  if (!hid || !eventName || !theme || !dateTime || !venue) {
+    return res.json({ success: false, message: 'All fields are required.' });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE homecoming
+       SET event_name = $1,
+           theme = $2,
+           date_time = $3,
+           venue = $4
+       WHERE hid = $5`,
+      [eventName, theme, dateTime, venue, hid]
+    );
+
+    if (result.rowCount === 0) {
+      return res.json({ success: false, message: 'Homecoming event not found.' });
+    }
+
+    res.json({ success: true, message: 'Homecoming event updated successfully!' });
+  } catch (err) {
+    console.error('Database error:', err);
+    res.json({ success: false, message: 'Failed to update Homecoming event.' });
+  }
+});
+
+
+
+
 
 
 

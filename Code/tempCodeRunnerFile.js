@@ -1,1 +1,1 @@
-/admin/home/accountability/viewEvent
+/admin/home/homecoming/edit
