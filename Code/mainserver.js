@@ -448,6 +448,27 @@ app.post('/admin/home/homecoming/add', async (req, res) => {
   }
 });
 
+// Route for Admin View Homecoming
+app.get('/admin/homecoming/view', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'viewHomecoming.html'));
+});
+
+/*************************** View All Events *****************************************/
+app.get('/admin/home/homecoming/list', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT * 
+      FROM homecoming 
+      ORDER BY date_time DESC;
+    `);
+
+    res.json({ success: true, events: result.rows });
+  } catch (err) {
+    console.error('Database error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch events' });
+  }
+});
+
 
 
 

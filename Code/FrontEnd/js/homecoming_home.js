@@ -15,3 +15,14 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.href = '/admin/homecoming/addHomecoming';
   });
 });
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  const viewBtn = document.getElementById('viewBtn');
+  if (!viewBtn) return;
+
+  viewBtn.addEventListener('click', () => {
+    window.location.href = '/admin/homecoming/view';
+  });
+});
