@@ -527,6 +527,147 @@ app.post('/admin/home/homecoming/alter', async (req, res) => {
 
 
 
+// ✅ Get list of homecoming events
+app.get('/admin/home/homecoming/list', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM homecoming ORDER BY date_time DESC');
+    res.json({ success: true, events: result.rows });
+  } catch (err) {
+    console.error('Error fetching homecoming list:', err);
+    res.status(500).json({ success: false, message: 'Server error fetching homecoming list' });
+  }
+});
+
+
+// ✅ Get students registered for a specific homecoming
+app.get('/admin/home/homecoming/:hid/students', async (req, res) => {
+  const { hid } = req.params;
+
+  try {
+    const result = await pool.query(`
+      SELECT s.sid, s.first_name, s.last_name, s.section, hp.attended
+      FROM homecoming_participation hp
+      JOIN students s ON hp.sid = s.sid
+      WHERE hp.hid = $1
+      ORDER BY s.last_name;
+    `, [hid]);
+
+    res.json({ success: true, students: result.rows });
+  } catch (err) {
+    console.error('Error fetching students for homecoming:', err);
+    res.status(500).json({ success: false, message: 'Server error fetching students' });
+  }
+});
+
+
+// ✅ Update attendance for a homecoming
+app.post('/admin/home/homecoming/:hid/attendance', async (req, res) => {
+  const { hid } = req.params;
+  const { updates } = req.body; // array: [{ sid, attended }]
+
+  try {
+    if (!Array.isArray(updates)) {
+      return res.status(400).json({ success: false, message: 'Invalid update format' });
+    }
+
+    for (const { sid, attended } of updates) {
+      await pool.query(`
+        UPDATE homecoming_participation
+        SET attended = $1
+        WHERE sid = $2 AND hid = $3;
+      `, [attended, sid, hid]);
+    }
+
+    res.json({ success: true, message: 'Attendance updated successfully' });
+  } catch (err) {
+    console.error('Error updating attendance:', err);
+    res.status(500).json({ success: false, message: 'Server error updating attendance' });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ====== Event Payments Routes ======
+
+// ✅ Get list of events
+app.get('/admin/home/events/list', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM events ORDER BY start_date DESC');
+    res.json({ success: true, events: result.rows });
+  } catch (err) {
+    console.error('Error fetching events list:', err);
+    res.status(500).json({ success: false, message: 'Server error fetching events list' });
+  }
+});
+
+// ✅ Get students registered for a specific event and their payment status
+app.get('/admin/home/accountability/:eid/students', async (req, res) => {
+  const { eid } = req.params;
+
+  try {
+    const result = await pool.query(`
+      SELECT s.sid, s.first_name, s.last_name, s.section,
+             CASE WHEN ec.amount > 0 THEN true ELSE false END AS paid
+      FROM students s
+      LEFT JOIN event_contribution ec 
+        ON s.sid = ec.sid AND ec.eid = $1 AND ec.contribution_type = 'Donation'
+      ORDER BY s.last_name;
+    `, [eid]);
+
+    res.json({ success: true, students: result.rows });
+  } catch (err) {
+    console.error('Error fetching students for event:', err);
+    res.status(500).json({ success: false, message: 'Server error fetching students' });
+  }
+});
+
+// ✅ Update payment status for students in an event
+app.post('/admin/home/accountability/:eid/payments', async (req, res) => {
+  const { eid } = req.params;
+  const { updates } = req.body; // array: [{ sid, paid }]
+
+  try {
+    if (!Array.isArray(updates)) {
+      return res.status(400).json({ success: false, message: 'Invalid update format' });
+    }
+
+    for (const { sid, paid } of updates) {
+      if (paid) {
+        // Insert or update contribution
+        await pool.query(`
+          INSERT INTO event_contribution (sid, eid, contribution_type, amount)
+          VALUES ($1, $2, 'Donation', 1)
+          ON CONFLICT (sid, eid, contribution_type) DO UPDATE SET amount = 1;
+        `, [sid, eid]);
+      } else {
+        // Remove contribution
+        await pool.query(`
+          DELETE FROM event_contribution
+          WHERE sid = $1 AND eid = $2 AND contribution_type = 'Donation';
+        `, [sid, eid]);
+      }
+    }
+
+    res.json({ success: true, message: 'Payment statuses updated successfully' });
+  } catch (err) {
+    console.error('Error updating payment status:', err);
+    res.status(500).json({ success: false, message: 'Server error updating payments' });
+  }
+});
+
+
 
 
 

@@ -27,6 +27,7 @@ body {
     cursor: pointer;
     transition: background 0.2s ease;
 }
+
 .top-bar button:hover {
     background: #555;
 }
@@ -49,7 +50,6 @@ body {
 .search-bar {
     display: flex;
     gap: 10px;
-    margin-bottom: 15px;
 }
 
 .search-bar input {
@@ -82,30 +82,23 @@ body {
     background: #666;
 }
 
-/* Filter buttons */
-.filter-buttons {
+/* Filter dropdown */
+.filter-dropdown {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 15px;
+    align-items: center;
+    gap: 10px;
 }
 
-.filter-buttons button {
-    padding: 6px 12px;
+.filter-dropdown select {
+    padding: 6px 10px;
     border-radius: 6px;
-    border: none;
-    background: #333;
+    border: 1px solid #555;
+    background: #2a2a2a;
     color: #fff;
     cursor: pointer;
-    font-size: 0.9rem;
-    transition: background 0.2s ease;
 }
 
-.filter-buttons button:hover {
-    background: #555;
-}
-
-/* Members list */
+/* Events list */
 .events-list {
     display: flex;
     flex-direction: column;
@@ -120,8 +113,22 @@ body {
     padding: 10px 15px;
     border-radius: 6px;
     color: #fff;
+
+    /* Make clickable */
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
 }
 
+.events:hover {
+    background: #3a3a3a;
+    transform: scale(1.01);
+}
+
+.events .event-info {
+    flex: 1;
+}
+
+/* Buttons inside actions */
 .events .actions button {
     margin-left: 5px;
     padding: 5px 10px;
@@ -147,18 +154,89 @@ body {
     color: #fff;
 }
 
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: #1e1e1e;
+    padding: 20px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    position: relative;
+}
+
+.modal-content .close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #fff;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+}
+
+#studentsTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+}
+
+#studentsTable th,
+#studentsTable td {
+    border: 1px solid #555;
+    padding: 8px;
+    text-align: left;
+    color: #fff;
+}
+
+#studentsTable th {
+    background: #2a2a2a;
+}
+
+#studentsTable td {
+    background: #1e1e1e;
+}
+
+#saveAttendanceBtn {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: none;
+    background: #5a5aff;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+#saveAttendanceBtn:hover {
+    background: #4343ff;
+}
+
 /* Responsive tweaks */
 @media (max-width: 480px) {
     .main-container {
         padding: 15px;
-    }
-
-    .filter-buttons {
-        flex-direction: column;
-    }
-
-    .filter-buttons button {
-        width: 100%;
     }
 
     .search-bar {
@@ -167,5 +245,22 @@ body {
 
     .search-bar button {
         width: 100%;
+    }
+
+    .filter-dropdown {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .events {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .events .actions {
+        display: flex;
+        flex-wrap: wrap;
     }
 }

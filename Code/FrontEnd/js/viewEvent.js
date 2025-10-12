@@ -5,13 +5,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   const searchBtn = document.getElementById('searchBtn');
   const filterSelect = document.getElementById('filterSelect');
 
+  // Modal elements
+  const modal = document.getElementById('studentsModal');
+  const closeModal = document.getElementById('closeModal');
+  const modalTitle = document.getElementById('modalTitle');
+  const studentsTableBody = document.querySelector('#studentsTable tbody');
+  const savePaymentBtn = document.getElementById('savePaymentBtn');
+
+  let allEvents = [];
+  let currentEventId = null;
+  let currentStudents = [];
+
+  // Go back
   backBtn?.addEventListener('click', () => {
     window.location.href = '/admin/home/accountability';
   });
-
-  if (!eventsList) return;
-
-  let allEvents = [];
 
   // --- Fetch all events ---
   async function fetchEvents() {
@@ -32,10 +40,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  // --- Populate dropdown with event years ---
+  // --- Populate dropdown with years ---
   function populateYearDropdown(events) {
     const years = [...new Set(events.map(e => new Date(e.start_date).getFullYear()))].sort((a, b) => b - a);
-
     filterSelect.innerHTML = `<option value="">All Years</option>`;
     years.forEach(year => {
       const option = document.createElement('option');
@@ -45,7 +52,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // --- Render events ---
+  // --- Render event cards ---
   function renderEvents(events) {
     eventsList.innerHTML = '';
 
@@ -57,9 +64,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     events.forEach(event => {
       const eventDiv = document.createElement('div');
       eventDiv.classList.add('event');
-
       eventDiv.innerHTML = `
-        <span>
+        <span class="event-info" data-id="${event.eid}">
           <strong>${event.event_name}</strong><br>
           ${new Date(event.start_date).toLocaleDateString()} – ${new Date(event.end_date).toLocaleDateString()}<br>
           Amount: ₱${Number(event.amount).toFixed(2)}
@@ -69,19 +75,19 @@ document.addEventListener('DOMContentLoaded', async () => {
           <button class="delete">Delete</button>
         </div>
       `;
-
       eventsList.appendChild(eventDiv);
 
-      // Delete functionality
+      // Event click → open modal
+      eventDiv.querySelector('.event-info').addEventListener('click', () =>
+        openStudentsModal(event.eid, event.event_name)
+      );
+
+      // Delete button
       eventDiv.querySelector('.delete').addEventListener('click', async () => {
         if (!confirm(`Are you sure you want to delete "${event.event_name}"?`)) return;
-
         try {
-          const delResponse = await fetch(`/admin/home/events/delete/${event.eid}`, {
-            method: 'DELETE',
-          });
-          const delData = await delResponse.json();
-
+          const delRes = await fetch(`/admin/home/events/delete/${event.eid}`, { method: 'DELETE' });
+          const delData = await delRes.json();
           if (delData.success) {
             alert('Event deleted successfully');
             eventDiv.remove();
@@ -94,33 +100,96 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       });
 
-      // Edit functionality
+      // Edit button
       eventDiv.querySelector('.edit').addEventListener('click', () => {
         window.location.href = `/admin/home/event/editMembers?eid=${event.eid}`;
       });
     });
   }
 
-  // --- Filter events based on search and year ---
-  function filterEvents() {
-    const searchTerm = searchInput.value.trim().toLowerCase();
-    const selectedYear = filterSelect.value;
+  // --- Open students modal for payments ---
+  async function openStudentsModal(eid, eventName) {
+    currentEventId = eid;
+    modalTitle.textContent = `Payments - ${eventName}`;
+    modal.classList.remove('hidden');
+    studentsTableBody.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
 
-    let filtered = allEvents.filter(event => {
-      const nameMatch = event.event_name.toLowerCase().includes(searchTerm);
-      const yearMatch = !selectedYear || new Date(event.start_date).getFullYear().toString() === selectedYear;
-      return nameMatch && yearMatch;
+    try {
+      const res = await fetch(`/admin/home/accountability/${eid}/students`);
+      const data = await res.json();
+
+      if (data.success) {
+        currentStudents = data.students;
+        renderStudents(data.students);
+      } else {
+        studentsTableBody.innerHTML = '<tr><td colspan="4">No students found.</td></tr>';
+      }
+    } catch (err) {
+      console.error('Error fetching students:', err);
+      studentsTableBody.innerHTML = '<tr><td colspan="4">Error loading students.</td></tr>';
+    }
+  }
+
+  // --- Render student rows ---
+  function renderStudents(students) {
+    studentsTableBody.innerHTML = '';
+    students.forEach(stu => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${stu.sid}</td>
+        <td>${stu.last_name}, ${stu.first_name}</td>
+        <td>${stu.section}</td>
+        <td><input type="checkbox" data-sid="${stu.sid}" ${stu.paid ? 'checked' : ''}></td>
+      `;
+      studentsTableBody.appendChild(row);
     });
+  }
 
+  // --- Save payments ---
+  savePaymentBtn.addEventListener('click', async () => {
+    const updates = Array.from(studentsTableBody.querySelectorAll('input[type="checkbox"]')).map(cb => ({
+      sid: cb.dataset.sid,
+      paid: cb.checked
+    }));
+
+    try {
+      const res = await fetch(`/admin/home/accountability/${currentEventId}/payments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updates })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        alert('Payment statuses updated successfully!');
+        modal.classList.add('hidden');
+      } else {
+        alert(data.message || 'Failed to update payments.');
+      }
+    } catch (err) {
+      console.error('Error saving payments:', err);
+      alert('Error saving payments.');
+    }
+  });
+
+  // Close modal
+  closeModal.addEventListener('click', () => modal.classList.add('hidden'));
+  window.addEventListener('click', e => { if (e.target === modal) modal.classList.add('hidden'); });
+
+  // Search and filter
+  searchBtn.addEventListener('click', filterEvents);
+  filterSelect.addEventListener('change', filterEvents);
+
+  function filterEvents() {
+    const search = searchInput.value.toLowerCase();
+    const year = filterSelect.value;
+    const filtered = allEvents.filter(e => {
+      const matchesSearch = e.event_name.toLowerCase().includes(search);
+      const matchesYear = !year || new Date(e.start_date).getFullYear().toString() === year;
+      return matchesSearch && matchesYear;
+    });
     renderEvents(filtered);
   }
 
-  // --- Search button ---
-  searchBtn.addEventListener('click', filterEvents);
-
-  // --- Dropdown change ---
-  filterSelect.addEventListener('change', filterEvents);
-
-  // --- Initial load ---
   await fetchEvents();
 });

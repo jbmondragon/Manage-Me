@@ -1,40 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event Management</title>
-    <link rel="stylesheet" href="/css/viewEvent.css">
-    <script src="/js/viewEvent.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accountability Tracker</title>
+  <link rel="stylesheet" href="/css/viewEvent.css" />
+  <script src="/js/viewEvent.js" defer></script>
 </head>
 <body>
-    
-    <!-- Top bar -->
-    <div class="top-bar">
-        <button id="backBtn">Back</button>
+  <!-- Top bar -->
+  <div class="top-bar">
+    <button id="backBtn">Back</button>
+  </div>
+
+  <div class="main-container">
+    <!-- Search Bar -->
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search by event name" />
+      <button id="searchBtn">Search</button>
     </div>
 
-    <div class="main-container">
-        
-        <!-- Search Bar -->
-        <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="Search by event name">
-            <button id="searchBtn">Search</button>
-        </div>
-
-        <!-- Filter Dropdown -->
-        <div class="filter-dropdown">
-            <label for="filterSelect">Filter by year:</label>
-            <select id="filterSelect">
-                <!-- Year options will be added dynamically -->
-            </select>
-        </div>
-
-        <!-- Events list -->
-        <div class="events-list">
-            <!-- Events will be inserted here dynamically -->
-        </div>
+    <!-- Filter Dropdown -->
+    <div class="filter-dropdown">
+      <label for="filterSelect">Filter by year:</label>
+      <select id="filterSelect"></select>
     </div>
 
+    <!-- Events list -->
+    <div class="events-list"></div>
+
+    <!-- Students modal -->
+    <div id="studentsModal" class="modal hidden">
+      <div class="modal-content">
+        <span id="closeModal" class="close">&times;</span>
+        <h2 id="modalTitle">Accountability - Payments</h2>
+        <table id="studentsTable">
+          <thead>
+            <tr>
+              <th>Student ID</th>
+              <th>Name</th>
+              <th>Section</th>
+              <th>Paid</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <button id="savePaymentBtn">Save Payments</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
