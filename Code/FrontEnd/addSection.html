@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Homecoming</title>
+    <!-- <script src="/js/addHomecoming.js" defer></script> -->
+    <!-- <link rel="stylesheet" href="/css/addHomecoming.css"> -->
+     <link rel="stylesheet" href="/css/addSection.css">
+     <script src="/js/addSection.js" defer></script>
+</head>
+
+<body>
+      <!-- Top bar -->
+  <header class="top-bar">
+    <button id="backBtn">Back</button>
+  </header>
+
+    <!-- Main container -->
+    <div class="container">
+        <h1>Create Section</h1>
+
+        <!-- Section Name -->
+        <div class="input-group">
+            <label for="sectionName">Section Name:</label>
+            <input type="text" id="sectionName" placeholder="Enter name of section" autocomplete="off">
+        </div>
+
+        <!-- Grade Level -->
+<div class="input-group">
+    <label for="gradeLevel">Grade Level:</label>
+    <select id="gradeLevel">
+        <option value="" disabled selected>Select Grade Level</option>
+        <option value="10">10</option>
+        <option value="12">12</option>
+    </select>
+</div>
+
+<!-- Academic Year -->
+<div class="input-group">
+    <label for="academicYear">Academic Year:</label>
+    <select id="academicYear">
+        <option value="" disabled selected>Select Academic Year</option>
+        <option value="2018-2019">2018-2019</option>
+        <option value="2019-2020">2019-2020</option>
+        <option value="2020-2021">2020-2021</option>
+        <option value="2021-2022">2021-2022</option>
+        <option value="2022-2023">2022-2023</option>
+        <option value="2023-2024">2023-2024</option>
+        <option value="2024-2025">2024-2025</option>
+    </select>
+</div>
+
+        <!-- Adviser -->
+        <div class="input-group">
+            <label for="adviser">Adviser:</label>
+            <input type="text" id="adviser" placeholder="Enter name of the adviser" autocomplete="off">
+        </div>
+
+        <!-- Button -->
+        <div class="button-group">
+            <button id="addToDatabaseBtn">Add to Database</button>
+        </div>
+
+        <p id="message"></p>
+    </div>
+</body>
+</html>

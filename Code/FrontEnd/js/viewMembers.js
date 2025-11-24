@@ -5,11 +5,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const searchInput = document.getElementById('searchInput');
   const searchBtn = document.getElementById('searchBtn');
 
-  if (backBtn) {
-    backBtn.addEventListener('click', () => {
-      window.location.href = '/admin/home';
-    });
-  }
+  backBtn?.addEventListener('click', () => {
+    window.location.href = '/admin/home';
+  });
 
   try {
     const response = await fetch('/admin/home/members/list');
@@ -23,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const members = data.members;
 
     // --- Extract unique sections from members ---
-    const sections = [...new Set(members.map(m => m.section).filter(Boolean))];
+    const sections = [...new Set(members.map(m => m.section_name || m.section).filter(Boolean))];
 
     // --- Populate dropdown dynamically ---
     filterSelect.innerHTML = `<option value="all">All sections</option>`;
@@ -34,18 +32,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       filterSelect.appendChild(option);
     });
 
-    // --- Function to render members ---
     const renderMembers = (filter = 'all', search = '') => {
       membersList.innerHTML = '';
 
       const filtered = members.filter(member => {
-        const inSection = filter === 'all' || member.section === filter;
+        const memberSection = member.section_name || member.section || '';
+        const inSection = filter === 'all' || memberSection === filter;
         const searchLower = search.toLowerCase();
-        const inSearch =
-          !search ||
-          member.sid.toString().includes(search) ||
-          member.first_name.toLowerCase().includes(searchLower) ||
-          member.last_name.toLowerCase().includes(searchLower);
+        const inSearch = !search || member.sid.includes(search) || member.first_name.toLowerCase().includes(searchLower) || member.last_name.toLowerCase().includes(searchLower);
         return inSection && inSearch;
       });
 
@@ -58,11 +52,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const memberDiv = document.createElement('div');
         memberDiv.classList.add('member');
 
+        const memberSection = member.section_name || member.section || 'No section';
         memberDiv.innerHTML = `
-          <span>
-            ${member.sid} - ${member.last_name}, ${member.first_name} ${member.middle_name || ''}
-            <small>(${member.section || 'No section'})</small>
-          </span>
+          <span>${member.sid} - ${member.last_name}, ${member.first_name} ${member.middle_name || ''} <small>(${memberSection})</small></span>
           <div class="actions">
             <button class="edit">edit</button>
             <button class="delete">delete</button>
@@ -71,14 +63,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         membersList.appendChild(memberDiv);
 
-        // --- Delete functionality ---
-        const deleteBtn = memberDiv.querySelector('.delete');
-        deleteBtn.addEventListener('click', async () => {
+        memberDiv.querySelector('.delete')?.addEventListener('click', async () => {
           if (confirm(`Are you sure you want to delete ${member.first_name} ${member.last_name}?`)) {
             try {
-              const delResponse = await fetch(`/admin/home/members/delete/${member.sid}`, {
-                method: 'DELETE'
-              });
+              const delResponse = await fetch(`/admin/home/members/delete/${member.sid}`, { method: 'DELETE' });
               const delData = await delResponse.json();
               if (delData.success) {
                 alert('Member deleted successfully');
@@ -93,35 +81,17 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         });
 
-        // --- Edit functionality ---
-        const editBtn = memberDiv.querySelector('.edit');
-        editBtn.addEventListener('click', () => {
+        memberDiv.querySelector('.edit')?.addEventListener('click', () => {
           window.location.href = `/admin/home/members/editMembers?sid=${member.sid}`;
         });
       });
     };
 
-    // Initial render
     renderMembers();
 
-    // --- Filter by section ---
-    filterSelect.addEventListener('change', () => {
-      renderMembers(filterSelect.value, searchInput.value.trim());
-    });
-
-    // --- Search button ---
-    searchBtn.addEventListener('click', e => {
-      e.preventDefault(); // prevents form submission if inside a form
-      renderMembers(filterSelect.value, searchInput.value.trim());
-    });
-
-    // --- Enter key triggers search ---
-    searchInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        searchBtn.click();
-      }
-    });
+    filterSelect.addEventListener('change', () => renderMembers(filterSelect.value, searchInput.value.trim()));
+    searchBtn?.addEventListener('click', e => { e.preventDefault(); renderMembers(filterSelect.value, searchInput.value.trim()); });
+    searchInput?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); searchBtn.click(); } });
 
   } catch (err) {
     console.error('Error fetching members:', err);

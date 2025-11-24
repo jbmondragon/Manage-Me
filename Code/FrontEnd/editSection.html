@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Section</title>
+    <link rel="stylesheet" href="/css/addSection.css">
+    <script src="/js/editSection.js" defer></script>
+</head>
+
+<body>
+  <header class="top-bar">
+    <button id="backBtn">Back</button>
+  </header>
+
+  <div class="container">
+    <h1>Edit Section</h1>
+
+    <div class="input-group">
+      <label for="sectionName">Section Name:</label>
+      <input type="text" id="sectionName" autocomplete="off">
+    </div>
+
+    <div class="input-group">
+      <label for="gradeLevel">Grade Level:</label>
+      <select id="gradeLevel">
+        <option value="" disabled>Select Grade Level</option>
+        <option value="10">10</option>
+        <option value="12">12</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label for="academicYear">Academic Year:</label>
+      <select id="academicYear">
+        <option value="" disabled>Select Academic Year</option>
+        <option value="2023-2024">2023-2024</option>
+        <option value="2024-2025">2024-2025</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label for="adviser">Adviser:</label>
+      <input type="text" id="adviser" autocomplete="off">
+    </div>
+
+    <div class="button-group">
+      <button id="saveBtn">Save</button>
+    </div>
+  </div>
+</body>
+</html>

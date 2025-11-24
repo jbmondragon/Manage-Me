@@ -1,0 +1,94 @@
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  margin: 0;
+  background: #121212;
+  color: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.top-bar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.top-bar button {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #333;
+  color: #fff;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.top-bar button:hover {
+  background: #555;
+  transform: scale(1.05);
+}
+
+.container {
+  width: 90%;
+  max-width: 600px;
+  background: #1e1e1e;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+h1, h2, h3 {
+  color: #ffd700;
+  margin: 0;
+}
+
+.event-info p, .status-section p {
+  margin: 6px 0;
+}
+
+.payment-section input[type="file"] {
+  margin-top: 10px;
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: #2a2a2a;
+  color: #fff;
+  width: 100%;
+}
+
+.payment-section button {
+  margin-top: 10px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #4caf50;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.payment-section button:hover {
+  background: #66bb6a;
+  transform: scale(1.05);
+}
+
+.status-section {
+  background: #2a2a2a;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 15px;
+  }
+
+  .payment-section button, .top-bar button {
+    width: 100%;
+  }
+}

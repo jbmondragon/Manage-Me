@@ -1,16 +1,31 @@
 document.addEventListener('DOMContentLoaded', function() {
+  // Elements
   const loginBtn = document.getElementById('loginBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const togglePassword = document.getElementById('togglePassword');
+  const passwordField = document.getElementById('password');
+  const usernameField = document.getElementById('username');
+  const message = document.getElementById('message');
 
+  // Top bar buttons
+  const dashboardBtn = document.getElementById('dashboard');
+  const aboutBtn = document.getElementById('about');
+  const adminLoginBtn = document.getElementById('adminLoginBtn');
+  const homeBtn = document.getElementById('homeBtn');
+
+  // ----- LOGIN -----
   loginBtn.addEventListener('click', async function() {
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+    const username = usernameField.value.trim();
+    const password = passwordField.value.trim();
 
-    // Optional: log inputs
-    console.log("Username:", username);
-    console.log("Password:", password);
+    if (!username || !password) {
+      message.textContent = "Please fill in both fields.";
+      return;
+    }
+
+    message.textContent = "Logging in...";
 
     try {
-      // Send login request to server
       const response = await fetch('/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -19,29 +34,45 @@ document.addEventListener('DOMContentLoaded', function() {
 
       const data = await response.json();
 
-        if (data.success) {
-          window.location.href = '/user/home';
-        } else {
-          // ❌ Show error message
-          document.getElementById('message').innerText = data.message;
-        }
-
+      if (data.success) {
+        window.location.href = '/user/home';
+      } else {
+        message.textContent = data.message || "Invalid username or password.";
+      }
     } catch (err) {
       console.error('Error connecting to server:', err);
-      document.getElementById('message').innerText = 'Error connecting to server';
+      message.textContent = 'Error connecting to server.';
     }
   });
-});
 
-// homepage_script.js
-document.addEventListener('DOMContentLoaded', function() {
-  const adminBtn = document.getElementById('adminLoginBtn');
+  // ----- RESET FORM -----
+  resetBtn?.addEventListener('click', function() {
+    usernameField.value = '';
+    passwordField.value = '';
+    message.textContent = '';
+  });
 
-  adminBtn.addEventListener('click', function() {
-    // Redirect to admin login page
+  // ----- TOGGLE PASSWORD VISIBILITY -----
+  togglePassword?.addEventListener('click', function() {
+    const isHidden = passwordField.type === 'password';
+    passwordField.type = isHidden ? 'text' : 'password';
+    togglePassword.textContent = isHidden ? '🙈' : '👁️';
+  });
+
+  // ----- NAVIGATION BUTTONS -----
+  dashboardBtn?.addEventListener('click', () => {
     window.location.href = '/admin';
   });
+
+  aboutBtn?.addEventListener('click', () => {
+    window.location.href = '/about';
+  });
+
+  adminLoginBtn?.addEventListener('click', () => {
+    window.location.href = '/admin/loginPage';
+  });
+
+  homeBtn?.addEventListener('click', () => {
+    window.location.href = '/';
+  });
 });
-
-
-console.log("admin_script.js loaded");

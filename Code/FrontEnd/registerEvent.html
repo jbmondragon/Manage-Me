@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Registration & Payment</title>
+  <link rel="stylesheet" href="/css/registerEvent.css">
+  <script src="/js/registerEvent.js" defer></script>
+</head>
+<body>
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <button id="backBtn">Back</button>
+  </div>
+
+  <div class="container">
+    <h1>Register for Event</h1>
+
+    <!-- Event info -->
+    <div class="event-info">
+      <h2 id="eventName">Event Name</h2>
+      <p id="eventDate">Date: --</p>
+      <p id="eventVenue">Venue: --</p>
+      <p id="eventAmount">Amount: ₱0.00</p>
+    </div>
+
+    <!-- Payment submission -->
+    <div class="payment-section">
+      <h3>Submit Proof of Payment</h3>
+      <input type="file" id="proofFile" accept="image/*,.pdf">
+      <button id="submitProofBtn">Submit Proof</button>
+      <p id="submissionStatus">Status: Not submitted</p>
+    </div>
+
+    <!-- Registered members status -->
+    <div class="status-section">
+      <h3>Your Submission</h3>
+      <p id="proofStatus">You have not submitted proof of payment yet.</p>
+      <p id="paymentStatus">Payment status: Pending</p>
+    </div>
+
+  </div>
+</body>
+</html>

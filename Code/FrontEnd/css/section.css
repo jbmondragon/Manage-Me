@@ -1,13 +1,13 @@
 /* ---------- Base ---------- */
 body {
-    font-family: 'Segoe UI', Arial, sans-serif;
+    font-family: Arial, sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100dvh;
     margin: 0;
-    background: #f5f5f5;   
-    color: #333;           
+    background: #121212;
+    color: #f0f0f0;
 }
 
 /* Top bar */
@@ -21,72 +21,61 @@ body {
     padding: 8px 12px;
     border: none;
     border-radius: 6px;
-    background: #888;   
+    background: #333;
     color: #fff;
     cursor: pointer;
     transition: background 0.2s ease;
 }
 .top-bar button:hover {
-    background: #666;
+    background: #555;
 }
 
 /* Main container */
 .container {
     width: 100%;
-    max-width: 420px; 
-    padding: 25px;
+    max-width: 350px;
+    padding: 20px;
+    border: 1px solid #333;
     border-radius: 12px;
-    background: #fff;  
+    background: #1e1e1e;
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    gap: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
 }
 
 h1 {
     text-align: center;
-    font-size: 1.6rem;
-    color: #222;
-}
-
-/* Group Labels */
-.group-label {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #444;
     margin-bottom: 10px;
+    font-size: 1.5rem;
+    color: #ffffff;
 }
 
-/* Button Groups with subtle background */
+/* Buttons */
 .button-group {
     display: flex;
     flex-direction: column;
     gap: 10px;
     width: 100%;
-    padding: 15px;
-    border-radius: 10px;
-    background: rgba(200, 200, 200, 0.1); /* semi-transparent group background */
 }
 
-/* Buttons */
 .button-group button {
-    flex: 1;
-    padding: 12px 16px;
+    width: 100%;
+    padding: 10px 14px;
     border: none;
     border-radius: 6px;
-    background: #666;  
+    background: #444;
     color: #fff;
     font-size: 1rem;
     cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease;
+    transition: background 0.2s ease;
 }
 
 .button-group button:hover {
-    background: #555;
-    transform: translateY(-1px);
+    background: #666;
 }
 
-/* Responsive */
+/* ---------- Responsive tweaks ---------- */
 @media (max-width: 480px) {
     .container {
         margin: 0 15px;
@@ -94,7 +83,11 @@ h1 {
     }
 
     h1 {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
+    }
+
+    .button-group {
+        flex-direction: column;
     }
 
     .button-group button {

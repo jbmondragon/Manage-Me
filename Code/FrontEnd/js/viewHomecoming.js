@@ -72,6 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         <div class="actions">
           <button class="edit" data-id="${event.hid}">Edit</button>
           <button class="delete" data-id="${event.hid}">Delete</button>
+          <button class="publish" data-id="${event.hid}">Publish</button>
         </div>
       `;
       eventsList.appendChild(div);

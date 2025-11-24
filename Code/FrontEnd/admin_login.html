@@ -11,6 +11,9 @@
 <body>
     <!-- Top bar -->
     <div class="top-bar">
+        <!-- <button id="dashboard" class="active">Dashboard</button> -->
+        <button id="about">About</button>
+        <button id="homeBtn">Home</button>
         <button id="userLoginBtn">User Log-in</button>
     </div>
 
@@ -23,19 +26,23 @@
             <input type="text" id="username" placeholder="Enter username" autocomplete="off">
         </div>
 
-        <div class="input-group">
+        <div class="input-group password-group">
             <label for="password">Password:</label>
-            <input type="password" id="password" placeholder="Enter password" autocomplete="off">
+            <div class="password-wrapper">
+                <input type="password" id="password" placeholder="Enter password" autocomplete="off">
+                <button type="button" id="togglePassword" title="Show/Hide Password">👁️</button>
+            </div>
         </div>
 
         <div class="button-group">
             <button id="loginBtn">Login</button>
+            <button id="resetBtn">Reset</button>
         </div>
 
         <!-- Forgot Password link -->
         <div class="forgot-password">
             <a href="forgot_password.html" id="forgotPasswordLink">Forgot Password?</a>
-    </div>
+        </div>
 
         <p id="message"></p>
     </div>

@@ -29,7 +29,7 @@
     <!-- Events list -->
     <div class="events-list"></div>
 
-    <!-- Students modal -->
+    <!-- Payments modal -->
     <div id="studentsModal" class="modal hidden">
       <div class="modal-content">
         <span id="closeModal" class="close">&times;</span>
@@ -46,6 +46,26 @@
           <tbody></tbody>
         </table>
         <button id="savePaymentBtn">Save Payments</button>
+      </div>
+    </div>
+
+    <!-- Attendance modal -->
+    <div id="attendeesModal" class="modal hidden">
+      <div class="modal-content">
+        <span id="closeAttendeesModal" class="close">&times;</span>
+        <h2 id="attendeesModalTitle">Event Attendees</h2>
+        <table id="attendeesTable">
+          <thead>
+            <tr>
+              <th>Student ID</th>
+              <th>Name</th>
+              <th>Section</th>
+              <th>Attending</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <button id="saveAttendeesBtn">Save Attendees</button>
       </div>
     </div>
   </div>

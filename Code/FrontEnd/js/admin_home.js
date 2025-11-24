@@ -28,6 +28,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+document.addEventListener('DOMContentLoaded', () => {
+  const accountabilityBtn = document.getElementById('sectionBtn');
+  if (!accountabilityBtn) return;
+
+  accountabilityBtn.addEventListener('click', () => {
+    window.location.href = '/admin/home/section';
+  });
+});
+
+
+
 document.addEventListener('DOMContentLoaded', () => {
   const alumniHomecomingBtn = document.getElementById('alumniHomecomingBtn');
   if (!alumniHomecomingBtn) return;

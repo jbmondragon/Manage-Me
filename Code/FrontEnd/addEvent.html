@@ -1,49 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Event</title>
-    <script src="/js/addEvent.js" defer></script>
-    <link rel="stylesheet" href="/css/addEvent.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Event Management</title>
+  <link rel="stylesheet" href="/css/addEvent.css" />
+  <script src="/js/addEvent.js" defer></script>
 </head>
-
 <body>
-    <!-- Top bar -->
-    <div class="top-bar">
-        <button id="backBtn">Back</button>
-    </div>
+  <div class="top-bar">
+    <button id="backBtn">← Back</button>
+  </div>
 
-    <!-- Main container -->
-    <div class="container">
-        <h1>Create Event</h1>
+  <div class="container">
+    <h1>Batch Event Management</h1>
 
+    <section class="card" id="createEventSection">
+      <h2>Create New Event</h2>
+
+      <div class="input-group">
+        <label>Event Name</label>
+        <input type="text" id="eventName" placeholder="e.g., Alumni Meetup" />
+      </div>
+
+      <div class="input-group">
+        <label>Event Type</label>
+        <select id="eventType">
+          <option value="General" selected>General</option>
+          <option value="Homecoming">Homecoming</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label>Theme</label>
+        <input type="text" id="theme" placeholder="e.g., Reconnecting Through Time" />
+      </div>
+
+      <div class="input-group">
+        <label>Location</label>
+        <input type="text" id="location" placeholder="e.g., Grand Hall, City Center" />
+      </div>
+
+      <div class="input-row">
         <div class="input-group">
-            <label for="nameOfEvent">Name of Event:</label>
-            <input type="text" id="nameOfEvent" placeholder="Enter Name of Event" autocomplete="off">
+          <label>Start Date</label>
+          <input type="date" id="startDate" />
         </div>
-
         <div class="input-group">
-            <label for="startDate">Start Date:</label>
-            <input type="date" id="startDate" autocomplete="off">
+          <label>Time</label>
+          <input type="time" id="time" />
         </div>
+      </div>
 
+      <div class="input-group">
+        <label>End Date (optional)</label>
+        <input type="date" id="endDate" />
+      </div>
+
+      <div class="input-row">
         <div class="input-group">
-            <label for="endDate">End Date:</label>
-            <input type="date" id="endDate" autocomplete="off">
-    </div>
-
-
+          <label>Duration (days)</label>
+          <input type="number" id="duration" placeholder="e.g., 2" />
+        </div>
         <div class="input-group">
-            <label for="amount">Enter Amount:</label>
-            <input type="text" id="amount" placeholder="Enter Amount" autocomplete="off">
+          <label>Collection Fee (₱)</label>
+          <input type="number" id="fee" placeholder="e.g., 1000" />
         </div>
+      </div>
 
-        <div class="button-group">
-            <button id="addToDatabaseBtn">Add to Database</button>
-        </div>
+      <div class="input-group">
+        <label>Payment Due Date</label>
+        <input type="date" id="dueDate" />
+      </div>
 
-        <p id="message"></p>
-    </div>
+      <div class="input-group">
+        <label>Payment Instructions</label>
+        <textarea
+          id="paymentInstructions"
+          rows="3"
+          placeholder="e.g., Send to account 12345678, GCASH: 09XXXXXXXXX"
+        ></textarea>
+      </div>
+
+      <div class="button-group">
+        <button id="createEventBtn">Create Event</button>
+      </div>
+    </section>
+  </div>
+
+  <p id="message"></p>
 </body>
 </html>

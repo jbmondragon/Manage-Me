@@ -1,36 +1,58 @@
 document.addEventListener('DOMContentLoaded', () => {
   const backBtn = document.getElementById('backBtn');
+  const sectionSelect = document.getElementById('section');
+  const messageEl = document.getElementById('message');
+  const addBtn = document.getElementById('addToDatabaseBtn');
+
   if (backBtn) {
     backBtn.addEventListener('click', () => {
       window.location.href = '/admin/home/members';
     });
   }
 
-  const addToDatabaseBtn = document.getElementById('addToDatabaseBtn');
-  if (!addToDatabaseBtn) return;
+  // Load sections into dropdown
+  const loadSections = async () => {
+    try {
+      const res = await fetch('/api/sections');
+      const data = await res.json();
+      if (data.success) {
+        sectionSelect.innerHTML = `<option value="">-- Select Section --</option>` +
+          data.sections.map(s => `<option value="${String(s.section_name)}">${s.section_name}</option>`).join('');
+      } else {
+        messageEl.innerText = 'Failed to load sections.';
+        messageEl.style.color = 'red';
+      }
+    } catch (err) {
+      console.error('Error fetching sections:', err);
+      messageEl.innerText = 'Error fetching sections.';
+      messageEl.style.color = 'red';
+    }
+  };
 
-  addToDatabaseBtn.addEventListener('click', async () => {
-    const studentNumber = document.getElementById('studentNumber').value.trim();
-    const lastName = document.getElementById('lastName').value.trim();
-    const firstName = document.getElementById('firstName').value.trim();
-    const middleName = document.getElementById('middleName').value.trim();
-    const sex = document.getElementById('sex').value.trim();
-    const section = document.getElementById('section').value.trim();
-    const email = document.getElementById('email').value.trim();
+  loadSections();
 
-    // Regex validation
-    const studentNumberRegex = /^[0-9]{12}$/; // exactly 11 digits
-    const nameRegex = /^[a-zA-Z\s\-]{1,50}$/;    // letters, spaces, hyphen, max 50 chars
-    const sexRegex = /^(Male|Female|Other)$/i;    // optional, allow only Male, Female, Other
-    const sectionRegex = /^[A-Za-z0-9]{1,10}$/; // allow lowercase and uppercase
+  // Add member
+  addBtn.addEventListener('click', async () => {
+    const studentNumber = String(document.getElementById('studentNumber').value.trim());
+    const lastName = String(document.getElementById('lastName').value.trim());
+    const firstName = String(document.getElementById('firstName').value.trim());
+    const middleName = String(document.getElementById('middleName').value.trim());
+    const sex = String(document.getElementById('sex').value);
+    const section = String(sectionSelect.value);
+    const email = String(document.getElementById('email').value.trim());
+
+    // Validation
+    const studentNumberRegex = /^[0-9]{12}$/;
+    const nameRegex = /^[a-zA-Z\s\-]{1,50}$/;
+    const sexRegex = /^(Male|Female)$/i;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!studentNumberRegex.test(studentNumber)) return alert('Invalid student number.');
     if (!nameRegex.test(lastName) || !nameRegex.test(firstName) || (middleName && !nameRegex.test(middleName))) {
       return alert('Invalid name format.');
     }
-    if (!sexRegex.test(sex)) return alert('Invalid sex selection.');
-    if (!sectionRegex.test(section)) return alert('Invalid section format.');
+    if (!sexRegex.test(sex)) return alert('Please select a valid sex.');
+    if (!section) return alert('Please select a section.');
     if (!emailRegex.test(email)) return alert('Invalid email format.');
 
     try {
@@ -45,11 +67,13 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Member added successfully!');
         window.location.href = '/admin/home/members';
       } else {
-        document.getElementById('message').innerText = data.message;
+        messageEl.innerText = data.message;
+        messageEl.style.color = 'red';
       }
     } catch (err) {
       console.error('Error connecting to server:', err);
-      document.getElementById('message').innerText = 'Error connecting to server';
+      messageEl.innerText = 'Error connecting to server.';
+      messageEl.style.color = 'red';
     }
   });
 });

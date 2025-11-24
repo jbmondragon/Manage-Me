@@ -10,16 +10,12 @@ const app = express();
 const port = process.env.PORT || 3000;
 const host = process.env.HOST || '0.0.0.0';
 
-// Enable CORS
+// Middleware
 app.use(cors());
-
-// Parse JSON bodies
 app.use(express.json());
-
-// Serve static files from FrontEnd folder
 app.use(express.static(path.join(__dirname, 'FrontEnd')));
 
-// PostgreSQL connection
+// PostgreSQL pool
 const pool = new Pool({
   user: process.env.POSTGRES_USER,
   host: process.env.POSTGRES_HOST,
@@ -28,95 +24,166 @@ const pool = new Pool({
   port: process.env.POSTGRES_PORT || 5432,
 });
 
+/****************************** FRONTEND ROUTES ******************************/
+const sendPage = (file) => (req, res) => res.sendFile(path.join(__dirname, 'FrontEnd', file));
 
+// SuperMain & Admin
+app.get('/', (req, res) => res.redirect('/admin'));
+app.get('/admin', sendPage('superMain.html'));
+app.get('/admin/loginPage', sendPage('admin_login.html'));
+app.get('/admin/home', sendPage('admin_home.html'));
 
-// Route for Admin Log-in Page (SID1)
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'admin_login.html'));
-});
+// Section Pages
+app.get('/admin/home/section', sendPage('section.html'));
+app.get('/admin/home/section/addSection', sendPage('addSection.html'));
+app.get('/admin/home/section/viewSection', sendPage('viewSection.html'));
+app.get('/admin/home/section/editSection', sendPage('editSection.html'));
 
-/***************************Login admin route*****************************************/
+// Members Pages
+app.get('/admin/home/members', sendPage('members.html'));
+app.get('/admin/home/members/addMembers', sendPage('addMembers.html'));
+app.get('/admin/home/members/viewMembers', sendPage('viewMembers.html'));
+app.get('/admin/home/members/editMembers', sendPage('editMembers.html'));
+
+// Events / Accountability Pages
+app.get('/admin/home/accountability', sendPage('accountability_home.html'));
+app.get('/admin/home/accountability/addEvent', sendPage('addEvent.html'));
+app.get('/admin/home/accountability/viewEvent', sendPage('viewEvent.html'));
+app.get('/admin/home/accountability/editEvent', sendPage('editEvent.html'));
+
+// User Pages
+app.get('/user/login', sendPage('app_user_login.html'));
+app.get('/user/login/registerEvent', sendPage('registerEvent.html'));
+app.get('/user/home', sendPage('user_home.html'));
+
+/****************************** AUTH ROUTES ******************************/
+// Admin Login
 app.post('/admin/login', async (req, res) => {
   const { username, password } = req.body;
-
   try {
-    // Example: if you store admins in a separate table
-    const result = await pool.query(
-      'SELECT * FROM admin WHERE username = $1 AND password = $2',
-      [username, password]
-    );
-
-    if (result.rows.length > 0) {
-      res.json({ success: true, message: 'Ka cute ni Jake!' });
-    } else {
-      res.json({ success: false, message: 'Invalid admin credentials.' });
-    }
+    const result = await pool.query('SELECT * FROM admin WHERE username=$1 AND password=$2', [username, password]);
+    if (result.rows.length > 0) res.json({ success: true, message: 'Login successful' });
+    else res.json({ success: false, message: 'Invalid credentials' });
   } catch (err) {
-    console.error('Database error (admin login):', err);
+    console.error('Admin login error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
-// Route for User Log-in Page (SID3)
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'app_user_login.html'));
-});
-
-/***************************Login app_user route*****************************************/
+// User Login
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
-
   try {
-    const result = await pool.query(
-      'SELECT * FROM app_user WHERE username = $1 AND password = $2',
-      [username, password]
-    );
-
-    if (result.rows.length > 0) {
-      res.json({ success: true, message: 'Ka cute ni Jake!' });
-    } else {
-      res.json({ success: false, message: 'Invalid username or password.' });
-    }
+    const result = await pool.query('SELECT * FROM app_user WHERE username=$1 AND password=$2', [username, password]);
+    if (result.rows.length > 0) res.json({ success: true, message: 'Login successful' });
+    else res.json({ success: false, message: 'Invalid username or password' });
   } catch (err) {
-    console.error('Database error:', err);
+    console.error('User login error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
-// Route for User Home Page
-app.get('/user/home', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'user_home.html'));
+/****************************** SECTION CRUD ******************************/
+// Add Section
+app.post('/api/sections', async (req, res) => {
+  const { sectionName, gradeLevel, academicYear, adviser } = req.body;
+  if (!sectionName || sectionName.length > 100) return res.status(400).json({ success: false, message: 'Invalid section name' });
+  try {
+    const existing = await pool.query('SELECT * FROM section WHERE section_name=$1', [sectionName]);
+    if (existing.rows.length > 0) return res.status(400).json({ success: false, message: 'Section already exists' });
+    const result = await pool.query(
+      'INSERT INTO section (section_name, grade_level, academic_year, adviser) VALUES ($1,$2,$3,$4) RETURNING *',
+      [sectionName, gradeLevel || null, academicYear || null, adviser || null]
+    );
+    res.status(201).json({ success: true, section: result.rows[0] });
+  } catch (err) {
+    console.error('Add section error:', err);
+    res.status(500).json({ success: false, message: 'Server error adding section' });
+  }
 });
 
-// Route for Admin Home Page
-app.get('/admin/home', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'admin_home.html'));
+// Get All Sections
+app.get('/api/sections', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM section ORDER BY section_name ASC');
+    res.json({ success: true, sections: result.rows });
+  } catch (err) {
+    console.error('Get sections error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch sections' });
+  }
 });
 
-// Route for Admin Member Page
-app.get('/admin/home/members', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'members.html'));
+// Get Section by ID
+app.get('/api/sections/:id', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM section WHERE section_id=$1', [req.params.id]);
+    if (result.rows.length === 0) return res.json({ success: false, message: 'Section not found' });
+    res.json({ success: true, section: result.rows[0] });
+  } catch (err) {
+    console.error('Get section by ID error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch section' });
+  }
 });
 
-// Route for Admin Add Member Page
-app.get('/admin/home/members/addMembers', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'addMembers.html'));
+//Section List
+app.get('/api/sections/list', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT section_id, section_name FROM section ORDER BY section_name');
+    res.json({ success: true, sections: result.rows });
+  } catch (err) {
+    console.error('Get sections list error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch sections' });
+  }
 });
 
-// Route for Admin View Member Page
-app.get('/admin/home/members/viewMembers', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'viewMembers.html'));
+
+// Update Section
+app.put('/api/sections/:id', async (req, res) => {
+  const { section_name, grade_level, academic_year, adviser } = req.body;
+  try {
+    const result = await pool.query(
+      'UPDATE section SET section_name=$1, grade_level=$2, academic_year=$3, adviser=$4 WHERE section_id=$5 RETURNING *',
+      [section_name, grade_level, academic_year, adviser, req.params.id]
+    );
+    if (result.rows.length === 0) return res.json({ success: false, message: 'Section not found' });
+    res.json({ success: true, section: result.rows[0] });
+  } catch (err) {
+    console.error('Update section error:', err);
+    res.status(500).json({ success: false, message: 'Failed to update section' });
+  }
 });
 
+// Delete Section
+app.delete('/api/sections/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM section WHERE section_id=$1', [req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Delete section error:', err);
+    res.status(500).json({ success: false, message: 'Failed to delete section' });
+  }
+});
+
+/****************************** MEMBER CRUD ******************************/
+// Add Member
 /***************************Route for add member*****************************************/
-app.post('/admin/home/members/add', async (req, res) => {
-  const { studentNumber, lastName, firstName, middleName, sex, section, email } = req.body;
 
-  // Regex validation
+app.post('/admin/home/members/add', async (req, res) => {
+  let { studentNumber, lastName, firstName, middleName, sex, section, email } = req.body;
+
+  // Convert to strings explicitly
+  studentNumber = String(studentNumber);
+  lastName = String(lastName);
+  firstName = String(firstName);
+  middleName = middleName ? String(middleName) : '';
+  sex = String(sex);
+  section = String(section);
+  email = String(email);
+
+  // Validation regex
   const studentNumberRegex = /^[0-9]{12}$/;
   const nameRegex = /^[a-zA-Z\s\-]{1,50}$/;
-  const sexRegex = /^(Male|Female|Other)$/i;
-  const sectionRegex = /^[A-Za-z0-9]{1,10}$/; // allow lowercase and uppercase
+  const sexRegex = /^(Male|Female)$/i;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   if (
@@ -125,24 +192,24 @@ app.post('/admin/home/members/add', async (req, res) => {
     !nameRegex.test(firstName) ||
     (middleName && !nameRegex.test(middleName)) ||
     !sexRegex.test(sex) ||
-    !sectionRegex.test(section) ||
+    !section || // section must not be empty
     !emailRegex.test(email)
   ) {
     return res.json({ success: false, message: 'Invalid input format.' });
   }
 
   try {
-    // Check for existing student number
+    // Check for duplicate student number
     const existing = await pool.query('SELECT * FROM students WHERE sid = $1', [studentNumber]);
     if (existing.rows.length > 0) {
       return res.json({ success: false, message: 'Student number already exists.' });
     }
 
-    // Insert member
+    // Insert new member
     await pool.query(
       `INSERT INTO students (sid, last_name, first_name, middle_name, sex, section, email)
        VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [studentNumber, lastName, firstName, middleName || '', sex, section, email]
+      [studentNumber, lastName, firstName, middleName, sex, section, email]
     );
 
     res.json({ success: true, message: 'Member added successfully!' });
@@ -152,66 +219,63 @@ app.post('/admin/home/members/add', async (req, res) => {
   }
 });
 
-/***************************View All member*****************************************/
+
+
+/***************************View All Members*****************************************/
 app.get('/admin/home/members/list', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM students ORDER BY last_name, first_name');
+    // Fetch all members, include section name from students table
+    const result = await pool.query(`
+      SELECT sid, first_name, last_name, middle_name, sex, section, email
+      FROM students
+      ORDER BY last_name, first_name
+    `);
+
     res.json({ success: true, members: result.rows });
   } catch (err) {
-    console.error('Database error:', err);
+    console.error('Get members error:', err);
     res.status(500).json({ success: false, message: 'Failed to fetch members' });
   }
 });
 
 
-/***************************Delete member by sid*****************************************/
-app.delete('/admin/home/members/delete/:sid', async (req, res) => {
-  const { sid } = req.params;
+// Get Member by SID
+app.get('/admin/home/members/get/:sid', async (req, res) => {
   try {
-    await pool.query('DELETE FROM students WHERE sid = $1', [sid]);
-    res.json({ success: true });
+    const result = await pool.query('SELECT * FROM students WHERE sid=$1', [req.params.sid]);
+    if (result.rows.length === 0) return res.json({ success: false, message: 'Member not found' });
+    res.json({ success: true, member: result.rows[0] });
   } catch (err) {
-    console.error('Database error:', err);
-    res.json({ success: false, message: 'Failed to delete member' });
+    console.error('Get member by SID error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch member' });
   }
 });
 
-// Route for Admin Edit Member Page
-app.get('/admin/home/members/editMembers', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'editMembers.html'));
-});
+// Update Member
+app.put('/admin/home/members/alter/:sid', async (req, res) => {
+  const { sid } = req.params; // sid from URL
+  const { lastName, firstName, middleName, sex, section, email } = req.body;
 
-/***************************Route for alter (update) member information*****************************************/
-app.post('/admin/home/members/alter', async (req, res) => {
-  const { studentNumber, lastName, firstName, middleName, sex, section, email } = req.body;
-
-  // Regex validation
-  const studentNumberRegex = /^[0-9]{12}$/;
   const nameRegex = /^[a-zA-Z\s\-]{1,50}$/;
   const sexRegex = /^(Male|Female|Other)$/i;
   const sectionRegex = /^[A-Za-z0-9]{1,10}$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   if (
-    !studentNumberRegex.test(studentNumber) ||
-    !nameRegex.test(lastName) ||
-    !nameRegex.test(firstName) ||
+    !nameRegex.test(lastName) || !nameRegex.test(firstName) ||
     (middleName && !nameRegex.test(middleName)) ||
-    !sexRegex.test(sex) ||
-    !sectionRegex.test(section) ||
+    !sexRegex.test(sex) || !sectionRegex.test(section) ||
     !emailRegex.test(email)
   ) {
-    return res.json({ success: false, message: 'Invalid input format.' });
+    return res.status(400).json({ success: false, message: 'Invalid input format.' });
   }
 
   try {
-    // Check if student exists
-    const existing = await pool.query('SELECT * FROM students WHERE sid = $1', [studentNumber]);
+    const existing = await pool.query('SELECT * FROM students WHERE sid = $1', [sid]);
     if (existing.rows.length === 0) {
-      return res.json({ success: false, message: 'Student number not found.' });
+      return res.status(404).json({ success: false, message: 'Member not found.' });
     }
 
-    // Update member information
     await pool.query(
       `UPDATE students
        SET last_name = $2,
@@ -221,480 +285,274 @@ app.post('/admin/home/members/alter', async (req, res) => {
            section = $6,
            email = $7
        WHERE sid = $1`,
-      [studentNumber, lastName, firstName, middleName || '', sex, section, email]
+      [sid, lastName, firstName, middleName || '', sex, section, email]
     );
 
-    res.json({ success: true, message: 'Member information updated successfully!' });
+    res.json({ success: true, message: 'Member updated successfully!' });
   } catch (err) {
-    console.error('Database error:', err);
-    res.json({ success: false, message: 'Failed to update member information.' });
+    console.error('Error updating member:', err);
+    res.status(500).json({ success: false, message: 'Server error while updating member.' });
   }
 });
 
-/***************************Route for get member by ID*****************************************/
-app.get('/admin/home/members/get/:sid', async (req, res) => {
-  const { sid } = req.params;
+
+// Delete Member
+app.delete('/admin/home/members/delete/:sid', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM students WHERE sid = $1', [sid]);
-    if (result.rows.length === 0) {
-      return res.json({ success: false, message: 'Member not found.' });
-    }
-    res.json({ success: true, member: result.rows[0] });
-  } catch (err) {
-    console.error('Database error:', err);
-    res.json({ success: false, message: 'Failed to retrieve member.' });
-  }
-});
-
-
-// Route for Admin Accountability Page
-app.get('/admin/home/accountability', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'accountability_home.html'));
-});
-
-// Route for Admin Add Event Page
-app.get('/admin/home/accountability/addEvent', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'addEvent.html'));
-});
-
-/***************************Add Event*****************************************/
-app.post('/admin/home/events/add', async (req, res) => {
-  const { nameOfEvent, startDate, endDate, amount } = req.body;
-
-  const nameRegex = /^[a-zA-Z0-9\s\-'"(),.&]{3,100}$/;
-  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-  const amountRegex = /^\d+(\.\d{1,2})?$/;
-
-  if (
-    !nameRegex.test(nameOfEvent) ||
-    !dateRegex.test(startDate) ||
-    !dateRegex.test(endDate) ||
-    !amountRegex.test(amount)
-  ) {
-    return res.json({ success: false, message: 'Invalid input format.' });
-  }
-
-  try {
-    // Check if event name already exists
-    const existing = await pool.query('SELECT * FROM events WHERE event_name = $1', [nameOfEvent]);
-    if (existing.rows.length > 0) {
-      return res.json({ success: false, message: 'Event already exists.' });
-    }
-
-    // Insert event into database
-    await pool.query(
-      `INSERT INTO events (event_name, start_date, end_date, amount)
-       VALUES ($1, $2, $3, $4)`,
-      [nameOfEvent, startDate, endDate, amount]
-    );
-
-    res.json({ success: true, message: 'Event added successfully!' });
-  } catch (err) {
-    console.error('Database error:', err);
-    res.json({ success: false, message: 'Failed to add event.' });
-  }
-});
-
-// Route for Admin View Event Page
-app.get('/admin/home/accountability/viewEvent', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'viewEvent.html'));
-});
-
-/*************************** View All Events *****************************************/
-app.get('/admin/home/events/list', async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT * 
-      FROM events 
-      ORDER BY start_date ASC, end_date ASC;
-    `);
-
-    res.json({ success: true, events: result.rows });
-  } catch (err) {
-    console.error('Database error:', err);
-    res.status(500).json({ success: false, message: 'Failed to fetch events' });
-  }
-});
-
-/***************************Delete Event by eid*****************************************/
-app.delete('/admin/home/events/delete/:eid', async (req, res) => {
-  const { eid } = req.params;
-  try {
-    await pool.query('DELETE FROM events WHERE eid = $1', [eid]);
+    await pool.query('DELETE FROM students WHERE sid=$1', [req.params.sid]);
     res.json({ success: true });
   } catch (err) {
-    console.error('Database error:', err);
-    res.json({ success: false, message: 'Failed to delete event' });
+    console.error('Delete member error:', err);
+    res.status(500).json({ success: false, message: 'Failed to delete member' });
   }
 });
 
-// Route for Admin Edit Event Page
-app.get('/admin/home/event/editMembers', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'editEvent.html'));
-});
+/****************************** EVENT CRUD ******************************/
+// Add Event
+app.post('/api/events', async (req, res) => {
+  const {
+    nameOfEvent,
+    eventType,
+    theme,
+    location,
+    startDate,
+    time,
+    endDate,
+    duration,
+    amount,
+    dueDate,
+    paymentInstructions
+  } = req.body;
 
-/*************************** Route for alter (update) event information *****************************************/
-app.post('/admin/home/events/alter', async (req, res) => {
-  const { eventId, nameOfEvent, startDate, endDate, amount } = req.body;
-
-  // Regex validation
-  const eventIdRegex = /^[0-9]+$/;
-  const nameRegex = /^[a-zA-Z0-9\s.,!?()\-]{1,100}$/;
-  const dateRegex = /^\d{4}-\d{2}-\d{2}$/; // yyyy-mm-dd
-  const amountRegex = /^\d+(\.\d{1,2})?$/; // e.g. 1000 or 99.99
-
-  if (
-    !eventIdRegex.test(eventId) ||
-    !nameRegex.test(nameOfEvent) ||
-    !dateRegex.test(startDate) ||
-    !dateRegex.test(endDate) ||
-    !amountRegex.test(amount)
-  ) {
-    return res.json({ success: false, message: 'Invalid input format.' });
-  }
+  if (!nameOfEvent || nameOfEvent.length > 100) 
+    return res.status(400).json({ success: false, message: 'Invalid event name' });
+  if (!startDate) 
+    return res.status(400).json({ success: false, message: 'Start date is required' });
 
   try {
-    // Check if event exists
-    const existing = await pool.query('SELECT * FROM events WHERE eid = $1', [eventId]);
-    if (existing.rows.length === 0) {
-      return res.json({ success: false, message: 'Event not found.' });
-    }
+    const existing = await pool.query('SELECT * FROM events WHERE event_name=$1', [nameOfEvent]);
+    if (existing.rows.length > 0) 
+      return res.status(400).json({ success: false, message: 'Event already exists' });
 
-    // Update event information
-    await pool.query(
-      `UPDATE events
-       SET event_name = $2,
-           start_date = $3,
-           end_date = $4,
-           amount = $5
-       WHERE eid = $1`,
-      [eventId, nameOfEvent, startDate, endDate, amount]
-    );
+    const dateTime = time ? `${startDate} ${time}` : null;
 
-    res.json({ success: true, message: 'Event information updated successfully!' });
-  } catch (err) {
-    console.error('Database error:', err);
-    res.json({ success: false, message: 'Failed to update event information.' });
-  }
-});
-
-/*************************** Route for get event by ID *****************************************/
-app.get('/admin/home/events/get/:eid', async (req, res) => {
-  const { eid } = req.params;
-  try {
-    const result = await pool.query('SELECT * FROM events WHERE eid = $1', [eid]);
-    if (result.rows.length === 0) {
-      return res.json({ success: false, message: 'Event not found.' });
-    }
-    res.json({ success: true, event: result.rows[0] });
-  } catch (err) {
-    console.error('Database error:', err);
-    res.json({ success: false, message: 'Failed to retrieve event.' });
-  }
-});
-
-
-// Route for Admin Homecoming Page
-app.get('/admin/homecoming', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'homecoming_home.html'));
-});
-
-
-
-// Route for Admin Homecoming Page
-app.get('/admin/homecoming/addHomecoming', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'addHomecoming.html'));
-});
-
-
-/*************************** Add Homecoming Event *****************************************/
-app.post('/admin/home/homecoming/add', async (req, res) => {
-  const { eventName, theme, dateTime, venue } = req.body;
-
-  // Validation regex patterns
-  const nameRegex = /^[a-zA-Z0-9\s\-'"(),.&]{3,100}$/;  // letters, digits, punctuation
-  const themeRegex = /^[a-zA-Z0-9\s\-'"(),.&]{3,150}$/;
-  const venueRegex = /^[a-zA-Z0-9\s\-'"(),.&]{3,150}$/;
-  const dateTimeRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/; // datetime-local format
-
-  // Validate all inputs
-  if (
-    !nameRegex.test(eventName) ||
-    !themeRegex.test(theme) ||
-    !venueRegex.test(venue) ||
-    !dateTimeRegex.test(dateTime)
-  ) {
-    return res.json({ success: false, message: 'Invalid input format.' });
-  }
-
-  try {
-    // Check if homecoming event already exists
-    const existing = await pool.query('SELECT * FROM homecoming WHERE event_name = $1', [eventName]);
-    if (existing.rows.length > 0) {
-      return res.json({ success: false, message: 'Homecoming event already exists.' });
-    }
-
-    // Insert new homecoming event
-    await pool.query(
-      `INSERT INTO homecoming (event_name, theme, date_time, venue)
-       VALUES ($1, $2, $3, $4)`,
-      [eventName, theme, dateTime.replace('T', ' '), venue]
-    );
-
-    res.json({ success: true, message: 'Homecoming event added successfully!' });
-  } catch (err) {
-    console.error('Database error:', err);
-    res.json({ success: false, message: 'Failed to add homecoming event.' });
-  }
-});
-
-// Route for Admin View Homecoming
-app.get('/admin/homecoming/view', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'viewHomecoming.html'));
-});
-
-/*************************** View All Events *****************************************/
-app.get('/admin/home/homecoming/list', async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT * 
-      FROM homecoming 
-      ORDER BY date_time DESC;
-    `);
-
-    res.json({ success: true, events: result.rows });
-  } catch (err) {
-    console.error('Database error:', err);
-    res.status(500).json({ success: false, message: 'Failed to fetch events' });
-  }
-});
-
-
-
-// Route for Admin Edit Event Page
-app.get('/admin/home/homecoming/edit', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'editHomecoming.html'));
-});
-
-/*************************** Route for get homecoming by ID *****************************************/
-app.get('/admin/home/homecoming/get/:hid', async (req, res) => {
-  const { hid } = req.params;
-
-  try {
-    const result = await pool.query('SELECT * FROM homecoming WHERE hid = $1', [hid]);
-
-    if (result.rows.length === 0) {
-      return res.json({ success: false, message: 'Homecoming event not found.' });
-    }
-
-    res.json({ success: true, event: result.rows[0] });
-  } catch (err) {
-    console.error('Database error:', err);
-    res.json({ success: false, message: 'Failed to retrieve Homecoming event.' });
-  }
-});
-
-/***************************Update Homecoming event by ID *****************************************/
-app.post('/admin/home/homecoming/alter', async (req, res) => {
-  const { hid, eventName, theme, dateTime, venue } = req.body;
-
-  if (!hid || !eventName || !theme || !dateTime || !venue) {
-    return res.json({ success: false, message: 'All fields are required.' });
-  }
-
-  try {
     const result = await pool.query(
-      `UPDATE homecoming
-       SET event_name = $1,
-           theme = $2,
-           date_time = $3,
-           venue = $4
-       WHERE hid = $5`,
-      [eventName, theme, dateTime, venue, hid]
+      `INSERT INTO events (
+        event_name, type, theme, location, start_date, end_date, date_time, amount, payment_due, payment_instructions
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+      [nameOfEvent, eventType || 'General', theme || null, location || null, startDate, endDate || null, dateTime, amount || 0, dueDate || null, paymentInstructions || null]
     );
 
-    if (result.rowCount === 0) {
-      return res.json({ success: false, message: 'Homecoming event not found.' });
-    }
-
-    res.json({ success: true, message: 'Homecoming event updated successfully!' });
+    res.status(201).json({ success: true, event: result.rows[0] });
   } catch (err) {
-    console.error('Database error:', err);
-    res.json({ success: false, message: 'Failed to update Homecoming event.' });
+    console.error('Add event error:', err);
+    res.status(500).json({ success: false, message: 'Server error adding event' });
   }
 });
 
-
-
-
-// ✅ Get list of homecoming events
-app.get('/admin/home/homecoming/list', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM homecoming ORDER BY date_time DESC');
-    res.json({ success: true, events: result.rows });
-  } catch (err) {
-    console.error('Error fetching homecoming list:', err);
-    res.status(500).json({ success: false, message: 'Server error fetching homecoming list' });
-  }
-});
-
-
-// ✅ Get students registered for a specific homecoming
-app.get('/admin/home/homecoming/:hid/students', async (req, res) => {
-  const { hid } = req.params;
-
-  try {
-    const result = await pool.query(`
-      SELECT s.sid, s.first_name, s.last_name, s.section, hp.attended
-      FROM homecoming_participation hp
-      JOIN students s ON hp.sid = s.sid
-      WHERE hp.hid = $1
-      ORDER BY s.last_name;
-    `, [hid]);
-
-    res.json({ success: true, students: result.rows });
-  } catch (err) {
-    console.error('Error fetching students for homecoming:', err);
-    res.status(500).json({ success: false, message: 'Server error fetching students' });
-  }
-});
-
-
-// ✅ Update attendance for a homecoming
-app.post('/admin/home/homecoming/:hid/attendance', async (req, res) => {
-  const { hid } = req.params;
-  const { updates } = req.body; // array: [{ sid, attended }]
-
-  try {
-    if (!Array.isArray(updates)) {
-      return res.status(400).json({ success: false, message: 'Invalid update format' });
-    }
-
-    for (const { sid, attended } of updates) {
-      await pool.query(`
-        UPDATE homecoming_participation
-        SET attended = $1
-        WHERE sid = $2 AND hid = $3;
-      `, [attended, sid, hid]);
-    }
-
-    res.json({ success: true, message: 'Attendance updated successfully' });
-  } catch (err) {
-    console.error('Error updating attendance:', err);
-    res.status(500).json({ success: false, message: 'Server error updating attendance' });
-  }
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// ====== Event Payments Routes ======
-
-// ✅ Get list of events
-app.get('/admin/home/events/list', async (req, res) => {
+// Get All Events
+app.get('/api/events', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM events ORDER BY start_date DESC');
     res.json({ success: true, events: result.rows });
   } catch (err) {
-    console.error('Error fetching events list:', err);
-    res.status(500).json({ success: false, message: 'Server error fetching events list' });
+    console.error('Get events error:', err);
+    res.status(500).json({ success: false, message: 'Server error fetching events' });
   }
 });
 
-// ✅ Get students registered for a specific event and their payment status
-app.get('/admin/home/accountability/:eid/students', async (req, res) => {
+
+/****************************** EVENT DETAIL & UPDATE ******************************/
+
+// Fetch single event for editing
+app.get('/api/events/:eid/details', async (req, res) => {
   const { eid } = req.params;
 
+  if (!eid) return res.status(400).json({ success: false, message: 'Event ID is required.' });
+
+  try {
+    const result = await pool.query('SELECT * FROM events WHERE eid=$1', [eid]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Event not found.' });
+    }
+    res.json({ success: true, event: result.rows[0] });
+  } catch (err) {
+    console.error('Error fetching event:', err);
+    res.status(500).json({ success: false, message: 'Server error fetching event.' });
+  }
+});
+
+
+/// Update event details
+app.post('/admin/home/events/alter', async (req, res) => {
+  const { eventId, nameOfEvent, startDate, endDate, amount } = req.body;
+
+  if (!eventId || !nameOfEvent || !startDate || !endDate || amount == null) {
+    return res.status(400).json({ success: false, message: 'Missing required fields' });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE events
+       SET event_name=$1,
+           start_date=$2,
+           end_date=$3,
+           amount=$4
+       WHERE eid=$5
+       RETURNING *`,
+      [nameOfEvent, startDate, endDate, amount, eventId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+
+    res.json({ success: true, message: 'Event updated successfully', event: result.rows[0] });
+  } catch (err) {
+    console.error('Update event error:', err);
+    res.status(500).json({ success: false, message: 'Server error updating event' });
+  }
+});
+
+
+
+
+// Delete Event
+app.delete('/api/events/:eid', async (req, res) => {
+  const { eid } = req.params;
+  try {
+    const result = await pool.query('DELETE FROM events WHERE eid=$1 RETURNING *', [eid]);
+    if (result.rows.length === 0) 
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    res.json({ success: true, message: 'Event deleted successfully' });
+  } catch (err) {
+    console.error('Delete event error:', err);
+    res.status(500).json({ success: false, message: 'Server error deleting event' });
+  }
+});
+
+app.put('/api/events/:eid/publish', async (req, res) => {
+  const { eid } = req.params;
+  const { is_published } = req.body;
+  try {
+    const result = await pool.query('UPDATE events SET is_published=$1 WHERE eid=$2 RETURNING *', [is_published, eid]);
+    if (!result.rows.length) return res.status(404).json({ success: false, message: 'Event not found' });
+    res.json({ success: true, event: result.rows[0] });
+  } catch (err) {
+    console.error('Publish error:', err);
+    res.status(500).json({ success: false, message: 'Server error updating publish state' });
+  }
+});
+
+app.post('/api/events/:eid/register', async (req, res) => {
+  const { eid } = req.params;
+  const { sid, registered } = req.body;
+  try {
+    if (registered) {
+      await pool.query('INSERT INTO event_participation (sid, eid) VALUES ($1,$2) ON CONFLICT DO NOTHING', [sid, eid]);
+    } else {
+      await pool.query('DELETE FROM event_participation WHERE sid=$1 AND eid=$2', [sid, eid]);
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Registration error:', err);
+    res.status(500).json({ success: false, message: 'Server error updating registration' });
+  }
+});
+
+/****************************** EVENT PARTICIPANTS & ATTENDANCE ******************************/
+
+// Get participants for Payments (whether they have paid)
+app.get('/api/events/:eid/participants', async (req, res) => {
+  const { eid } = req.params;
   try {
     const result = await pool.query(`
-      SELECT s.sid, s.first_name, s.last_name, s.section,
-             CASE WHEN ec.amount > 0 THEN true ELSE false END AS paid
+      SELECT s.sid, s.last_name, s.first_name, s.section,
+             CASE WHEN ep.sid IS NOT NULL THEN true ELSE false END AS paid
       FROM students s
-      LEFT JOIN event_contribution ec 
-        ON s.sid = ec.sid AND ec.eid = $1 AND ec.contribution_type = 'Donation'
-      ORDER BY s.last_name;
+      LEFT JOIN event_participation ep ON s.sid = ep.sid AND ep.eid = $1
+      ORDER BY s.last_name, s.first_name
     `, [eid]);
 
-    res.json({ success: true, students: result.rows });
+    res.json({ success: true, participants: result.rows });
   } catch (err) {
-    console.error('Error fetching students for event:', err);
-    res.status(500).json({ success: false, message: 'Server error fetching students' });
+    console.error('Fetch participants error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch participants' });
   }
 });
 
-// ✅ Update payment status for students in an event
-app.post('/admin/home/accountability/:eid/payments', async (req, res) => {
+// Get attendees for Attendance (whether they attended)
+app.get('/api/events/:eid/attendees', async (req, res) => {
   const { eid } = req.params;
-  const { updates } = req.body; // array: [{ sid, paid }]
+  try {
+    const result = await pool.query(`
+      SELECT s.sid, s.last_name, s.first_name, s.section,
+             CASE WHEN ea.sid IS NOT NULL THEN true ELSE false END AS attended
+      FROM students s
+      LEFT JOIN event_attendance ea ON s.sid = ea.sid AND ea.eid = $1
+      ORDER BY s.last_name, s.first_name
+    `, [eid]);
+
+    res.json({ success: true, attendees: result.rows });
+  } catch (err) {
+    console.error('Fetch attendees error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch attendees' });
+  }
+});
+
+// Update attendees (POST)
+app.post('/api/events/:eid/attendees', async (req, res) => {
+  const { eid } = req.params;
+  const { updates } = req.body; // [{sid, attended}, ...]
+
+  if (!Array.isArray(updates)) return res.status(400).json({ success: false, message: 'Invalid data' });
 
   try {
-    if (!Array.isArray(updates)) {
-      return res.status(400).json({ success: false, message: 'Invalid update format' });
-    }
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    for (const { sid, paid } of updates) {
-      if (paid) {
-        // Insert or update contribution
-        await pool.query(`
-          INSERT INTO event_contribution (sid, eid, contribution_type, amount)
-          VALUES ($1, $2, 'Donation', 1)
-          ON CONFLICT (sid, eid, contribution_type) DO UPDATE SET amount = 1;
-        `, [sid, eid]);
-      } else {
-        // Remove contribution
-        await pool.query(`
-          DELETE FROM event_contribution
-          WHERE sid = $1 AND eid = $2 AND contribution_type = 'Donation';
-        `, [sid, eid]);
+      for (const u of updates) {
+        if (u.attended) {
+          await client.query(`
+            INSERT INTO event_attendance (sid, eid) VALUES ($1, $2)
+            ON CONFLICT DO NOTHING
+          `, [u.sid, eid]);
+        } else {
+          await client.query(`DELETE FROM event_attendance WHERE sid=$1 AND eid=$2`, [u.sid, eid]);
+        }
       }
-    }
 
-    res.json({ success: true, message: 'Payment statuses updated successfully' });
+      await client.query('COMMIT');
+      res.json({ success: true });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('Update attendees transaction error:', err);
+      res.status(500).json({ success: false, message: 'Failed to update attendance' });
+    } finally {
+      client.release();
+    }
   } catch (err) {
-    console.error('Error updating payment status:', err);
-    res.status(500).json({ success: false, message: 'Server error updating payments' });
+    console.error('DB connection error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
 
-
-
-
-
-
-
-
-
-
-// Helper to get local LAN IP
+/****************************** SERVER START ******************************/
 function getLocalIP() {
   const interfaces = os.networkInterfaces();
   for (const iface in interfaces) {
     for (const addr of interfaces[iface]) {
-      if (addr.family === 'IPv4' && !addr.internal) {
-        return addr.address;
-      }
+      if (addr.family === 'IPv4' && !addr.internal) return addr.address;
     }
   }
   return 'localhost';
 }
 
-// Start server
 app.listen(port, host, async () => {
   const localIP = getLocalIP();
   console.log(`Server running at http://${localIP}:${port}`);
-
   if (process.env.USE_NGROK === 'true') {
     const url = await ngrok.connect(port);
     console.log(`Public URL via ngrok: ${url}`);

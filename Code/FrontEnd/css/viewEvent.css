@@ -1,6 +1,6 @@
 /* ---------- Base ---------- */
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Arial, sans-serif;
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -25,24 +25,25 @@ body {
     background: #333;
     color: #fff;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, transform 0.1s ease;
 }
 .top-bar button:hover {
     background: #555;
+    transform: scale(1.05);
 }
 
 /* Main container */
 .main-container {
     width: 90%;
-    max-width: 700px;
+    max-width: 750px;
     padding: 20px;
     border: 1px solid #333;
-    border-radius: 12px;
+    border-radius: 14px;
     background: #1e1e1e;
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    gap: 20px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.7);
 }
 
 /* Search bar */
@@ -54,8 +55,8 @@ body {
 
 .search-bar input {
     flex: 1;
-    padding: 10px;
-    border-radius: 6px;
+    padding: 12px;
+    border-radius: 8px;
     border: 1px solid #555;
     background: #2a2a2a;
     color: #fff;
@@ -65,21 +66,22 @@ body {
 .search-bar input:focus {
     outline: none;
     border-color: #888;
-    box-shadow: 0 0 4px rgba(200,200,200,0.4);
+    box-shadow: 0 0 6px rgba(200,200,200,0.5);
 }
 
 .search-bar button {
-    padding: 10px 15px;
-    border-radius: 6px;
+    padding: 12px 18px;
+    border-radius: 8px;
     border: none;
     background: #444;
     color: #fff;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, transform 0.1s ease;
 }
 
 .search-bar button:hover {
     background: #666;
+    transform: scale(1.05);
 }
 
 /* Filter dropdown */
@@ -90,63 +92,96 @@ body {
 }
 
 .filter-dropdown select {
-    padding: 6px 10px;
+    padding: 6px 12px;
     border-radius: 6px;
     border: 1px solid #555;
     background: #2a2a2a;
     color: #fff;
+    cursor: pointer;
 }
 
-/* Homecoming list */
+/* Events list */
 .events-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
 .event {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     background: #2a2a2a;
     padding: 15px 20px;
-    border-radius: 8px;
+    border-radius: 10px;
     color: #fff;
     cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease;
+    transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    flex-wrap: wrap;
 }
 
 .event:hover {
     background: #383838;
-    transform: scale(1.01);
+    transform: scale(1.02);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5);
 }
 
 .event:active {
     transform: scale(0.99);
 }
 
-/* Action buttons (edit/delete) */
-.actions button {
+/* Event badges */
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: #fff;
+    font-weight: bold;
     margin-left: 5px;
-    padding: 5px 10px;
+}
+
+/* Event info */
+.event-info {
+    flex: 1;
+    min-width: 220px;
+    line-height: 1.5;
+}
+
+.event-info strong {
+    font-size: 1.1rem;
+    color: #ffd700;
+}
+
+/* Action buttons (edit/delete) */
+.actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-left: 10px;
+}
+
+.actions button {
+    padding: 6px 12px;
     border-radius: 6px;
     border: none;
     cursor: pointer;
-    background: #444;
-    color: #fff;
-    transition: background 0.2s ease;
+    font-weight: bold;
+    transition: background 0.2s ease, transform 0.1s ease;
 }
 
 .actions button:hover {
-    background: #666;
+    transform: scale(1.05);
 }
 
 .actions .edit {
     background: #5a5aff;
+    color: #fff;
 }
 
 .actions .delete {
     background: #ff5a5a;
+    color: #fff;
 }
 
 /* ---------- Modal ---------- */
@@ -154,7 +189,7 @@ body {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.7);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -167,33 +202,34 @@ body {
 
 .modal-content {
     background: #1f1f1f;
-    padding: 20px;
-    border-radius: 10px;
+    padding: 25px;
+    border-radius: 12px;
     width: 90%;
-    max-width: 800px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.8);
+    max-width: 850px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.8);
     position: relative;
 }
 
 .close {
     position: absolute;
-    top: 10px;
-    right: 15px;
+    top: 12px;
+    right: 18px;
     font-size: 28px;
     color: #bbb;
     cursor: pointer;
-    transition: color 0.2s;
+    transition: color 0.2s ease, transform 0.1s ease;
 }
 
 .close:hover {
     color: #fff;
+    transform: scale(1.1);
 }
 
 /* Modal title */
 .modal-content h2 {
     margin-top: 0;
-    margin-bottom: 10px;
-    color: #fff;
+    margin-bottom: 15px;
+    color: #ffd700;
     border-bottom: 1px solid #444;
     padding-bottom: 8px;
 }
@@ -202,7 +238,7 @@ body {
 #studentsTable {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
+    margin-top: 15px;
     background: #2a2a2a;
 }
 
@@ -224,20 +260,22 @@ body {
 }
 
 /* Save button */
-#saveAttendanceBtn {
+#savePaymentBtn {
     margin-top: 15px;
-    padding: 10px 20px;
+    padding: 12px 22px;
     background: #4caf50;
     color: #fff;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 1rem;
-    transition: background 0.2s ease;
+    font-weight: bold;
+    transition: background 0.2s ease, transform 0.1s ease;
 }
 
-#saveAttendanceBtn:hover {
+#savePaymentBtn:hover {
     background: #66bb6a;
+    transform: scale(1.05);
 }
 
 /* ---------- Responsive ---------- */
@@ -267,4 +305,25 @@ body {
         font-size: 0.9rem;
         padding: 6px;
     }
+
+    .actions {
+        flex-direction: row;
+        justify-content: flex-end;
+        margin-top: 10px;
+        width: 100%;
+    }
+
+.toggle-btn {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background-color: #00bfff;
+  color: white;
+}
+
+.toggle-btn.active {
+  background-color: #ff6f61;
+}
+
 }

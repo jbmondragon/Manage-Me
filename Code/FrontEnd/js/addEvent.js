@@ -1,75 +1,60 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
+  const createBtn = document.getElementById("createEventBtn");
   const backBtn = document.getElementById('backBtn');
-  if (backBtn) {
-    backBtn.addEventListener('click', () => {
-      window.location.href = '/admin/home/accountability';
-    });
-  }
-});
 
-document.addEventListener('DOMContentLoaded', () => {
-  const backBtn = document.getElementById('backBtn');
-  const addToDatabaseBtn = document.getElementById('addToDatabaseBtn');
-  const messageEl = document.getElementById('message');
+  backBtn?.addEventListener('click', () => {
+    window.location.href = '/admin/home/accountability';
+  });
 
-  // Handle back button navigation
-  if (backBtn) {
-    backBtn.addEventListener('click', () => {
-      window.location.href = '/admin/home/accountability'; // Adjust as needed
-    });
-  }
+  createBtn?.addEventListener("click", async () => {
+    const nameOfEvent = document.getElementById("eventName").value.trim();
+    const eventType = document.getElementById("eventType").value;
+    const theme = document.getElementById("theme").value.trim();
+    const location = document.getElementById("location").value.trim();
+    const startDate = document.getElementById("startDate").value;
+    const time = document.getElementById("time").value;
+    const endDate = document.getElementById("endDate").value;
+    const duration = document.getElementById("duration").value;
+    const amount = document.getElementById("fee").value || 0;
+    const dueDate = document.getElementById("dueDate").value;
+    const paymentInstructions = document
+      .getElementById("paymentInstructions")
+      .value.trim();
 
-  // Handle form submission
-  if (!addToDatabaseBtn) return;
-
-  addToDatabaseBtn.addEventListener('click', async () => {
-    const nameOfEvent = document.getElementById('nameOfEvent').value.trim();
-    const startDate = document.getElementById('startDate').value.trim();
-    const endDate = document.getElementById('endDate').value.trim();
-    const amount = document.getElementById('amount').value.trim();
-
-    // Validation regex patterns
-    const nameRegex = /^[a-zA-Z0-9\s\-'"(),.&]{3,100}$/; // allows letters, digits, punctuation
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/; // expects YYYY-MM-DD
-    const amountRegex = /^\d+(\.\d{1,2})?$/; // numeric, allows decimals
-
-    // Basic validation
-    if (!nameRegex.test(nameOfEvent)) {
-      return alert('Invalid event name. Use only letters, numbers, and punctuation.');
-    }
-    if (!dateRegex.test(startDate)) {
-      return alert('Invalid start date. Format: YYYY-MM-DD');
-    }
-    if (!dateRegex.test(endDate)) {
-      return alert('Invalid end date. Format: YYYY-MM-DD');
-    }
-    if (new Date(startDate) > new Date(endDate)) {
-      return alert('Start date cannot be after end date.');
-    }
-    if (!amountRegex.test(amount)) {
-      return alert('Invalid amount. Enter a valid number.');
+    if (!nameOfEvent || !startDate) {
+      alert("⚠️ Please fill in the Event Name and Start Date.");
+      return;
     }
 
     try {
-      const response = await fetch('/admin/home/events/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nameOfEvent, startDate, endDate, amount })
+      const res = await fetch("/admin/home/events/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nameOfEvent,
+          eventType,
+          theme,
+          location,
+          startDate,
+          time,
+          endDate,
+          duration,
+          amount,
+          dueDate,
+          paymentInstructions
+        })
       });
 
-      const data = await response.json();
+      const data = await res.json();
       if (data.success) {
-        alert('Event added successfully!');
-        window.location.href = '/admin/home/accountability'; // redirect to event list page
+        alert("✅ Event created successfully!");
+        document.querySelectorAll("input, textarea").forEach((el) => (el.value = ""));
       } else {
-        messageEl.innerText = data.message || 'Failed to add event.';
+        alert(`⚠️ ${data.message}`);
       }
     } catch (err) {
-      console.error('Error connecting to server:', err);
-      messageEl.innerText = 'Error connecting to server.';
+      console.error("Error creating event:", err);
+      alert("❌ Server error while creating event.");
     }
   });
 });
-
-
-

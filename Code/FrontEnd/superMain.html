@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Home</title>
+  <link rel="stylesheet" href="superMain.css" />
+  <script src="superMain.js" defer></script>
+</head>
+<body>
+  <!-- Top bar -->
+  <header class="top-bar">
+    <button id="dashboard" class="active">Home</button>
+    <button id="about">About</button>
+    <button id="log-in">Log in</button>
+  </header>
+
+  <!-- Main container -->
+  <main class="container">
+    <section class="fade-in">
+      <h1>CNVS</h1>
+      <p>
+        Carigara National Vocational School (CNVS), formerly Carigara School of Fisheries,
+        is located in Barugohay Norte, Carigara, Philippines. CNVS is a vocational school
+        offering programs in agriculture, food processing, drafting, and garment production
+        for junior high school. Senior high school offers both technical-vocational-livelihood
+        (TVL) and academic strands, focusing on the General Academic Strand as well as
+        agriculture and food processing.
+      </p>
+    </section>
+
+    <section class="fade-in">
+      <h1>House Rules</h1>
+      <p>
+        1. Time is Gold. Be punctual. <br/>
+        2. Everyone's ideas, suggestions, and decisions are appreciated. <br/>
+        3. Cooperation is a must — we should work as one. <br/>
+        4. Be present in every meeting. Fines apply for unexcused absences: Php300.00 for Elected Officers and Php150.00 for Board of Directors. <br/>
+        5. Representatives are accepted for Board of Directors, but not for Elected Officers. <br/>
+        6. Be responsible in every assigned task. <br/>
+        7. Show respect to the association and its members. Uphold dignity and honor.
+      </p>
+    </section>
+  </main>
+
+  <!-- Fade-in scroll script -->
+  <script>
+    const faders = document.querySelectorAll('.fade-in');
+    const appearOptions = {
+      threshold: 0.2,
+      rootMargin: "0px 0px -50px 0px"
+    };
+
+    const appearOnScroll = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      });
+    }, appearOptions);
+
+    faders.forEach(fader => {
+      appearOnScroll.observe(fader);
+    });
+  </script>
+</body>
+</html>
