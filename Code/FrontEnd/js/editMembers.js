@@ -1,75 +1,62 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const sid = urlParams.get('sid');
+    const backBtn = document.getElementById('backBtn');
+    const updateBtn = document.getElementById('addToDatabaseBtn');
+    const message = document.getElementById('message');
 
-  const backBtn = document.getElementById('backBtn');
-  if (backBtn) {
-    backBtn.addEventListener('click', () => {
-      window.location.href = '/admin/home/members';
-    });
-  }
+    backBtn.addEventListener('click', () => window.location.href = '/user/home');
 
-  if (!sid) {
-    document.getElementById('message').innerText = 'No student ID provided.';
-    return;
-  }
-
-  // --- Load existing member info ---
-  try {
-    const res = await fetch(`/admin/home/members/get/${sid}`);
-    const data = await res.json();
-
-    if (data.success && data.member) {
-      const member = data.member;
-      document.getElementById('studentNumber').value = member.sid;
-      document.getElementById('lastName').value = member.last_name;
-      document.getElementById('firstName').value = member.first_name;
-      document.getElementById('middleName').value = member.middle_name || '';
-      document.getElementById('sex').value = member.sex;
-      document.getElementById('section').value = member.section;
-      document.getElementById('email').value = member.email;
-    } else {
-      document.getElementById('message').innerText = 'Member not found.';
-      return;
+    // Load current student info
+    const res = await fetch('/api/students/me');
+    const result = await res.json();
+    if (result.success) {
+        const data = result.data;
+        document.getElementById('studentNumber').value = data.sid;
+        document.getElementById('studentNumber').readOnly = true; // SID should not be editable
+        document.getElementById('lastName').value = data.last_name;
+        document.getElementById('firstName').value = data.first_name;
+        document.getElementById('middleName').value = data.middle_name;
+        document.getElementById('sex').value = data.sex;
+        document.getElementById('section').value = data.section_name;
+        document.getElementById('email').value = data.email;
     }
-  } catch (err) {
-    console.error('Error loading member info:', err);
-    document.getElementById('message').innerText = 'Error loading member info.';
-    return;
-  }
 
-  // --- Update member when button is clicked ---
-  const addToDatabaseBtn = document.getElementById('addToDatabaseBtn');
-  if (!addToDatabaseBtn) return;
+    // Update info
+    updateBtn.addEventListener('click', async () => {
+        const studentData = {
+            last_name: document.getElementById('lastName').value.trim(),
+            first_name: document.getElementById('firstName').value.trim(),
+            middle_name: document.getElementById('middleName').value.trim(),
+            sex: document.getElementById('sex').value.trim(),
+            section_name: document.getElementById('section').value.trim(),
+            email: document.getElementById('email').value.trim()
+        };
 
-addToDatabaseBtn.addEventListener('click', async () => {
-  const lastName = document.getElementById('lastName').value.trim();
-  const firstName = document.getElementById('firstName').value.trim();
-  const middleName = document.getElementById('middleName').value.trim();
-  const sex = document.getElementById('sex').value.trim();
-  const section = document.getElementById('section').value.trim();
-  const email = document.getElementById('email').value.trim();
+        // Simple validation
+        if (!studentData.last_name || !studentData.first_name || !studentData.sex || !studentData.section_name || !studentData.email) {
+            message.textContent = "Please fill in all required fields.";
+            message.style.color = "red";
+            return;
+        }
 
-  // Validation (same as before)...
+        try {
+            const updateRes = await fetch('/api/students/update', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(studentData)
+            });
+            const updateResult = await updateRes.json();
 
-  try {
-    const response = await fetch(`/admin/home/members/alter/${sid}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lastName, firstName, middleName, sex, section, email })
+            if (updateResult.success) {
+                message.textContent = "Member updated successfully!";
+                message.style.color = "green";
+            } else {
+                message.textContent = `Error: ${updateResult.message}`;
+                message.style.color = "red";
+            }
+        } catch (err) {
+            console.error(err);
+            message.textContent = "Server error. Please try again later.";
+            message.style.color = "red";
+        }
     });
-
-    const data = await response.json();
-    if (data.success) {
-      alert('Member updated successfully!');
-      window.location.href = '/admin/home/members';
-    } else {
-      document.getElementById('message').innerText = data.message;
-    }
-  } catch (err) {
-    console.error('Error connecting to server:', err);
-    document.getElementById('message').innerText = 'Error connecting to server';
-  }
-});
-
 });

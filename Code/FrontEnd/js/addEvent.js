@@ -46,12 +46,14 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       const data = await res.json();
+
       if (data.success) {
         alert("✅ Event created successfully!");
         document.querySelectorAll("input, textarea").forEach((el) => (el.value = ""));
       } else {
         alert(`⚠️ ${data.message}`);
       }
+
     } catch (err) {
       console.error("Error creating event:", err);
       alert("❌ Server error while creating event.");

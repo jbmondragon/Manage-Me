@@ -10,7 +10,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const startDateInput = document.getElementById("startDate");
   const timeInput = document.getElementById("time");
   const endDateInput = document.getElementById("endDate");
-  const durationInput = document.getElementById("duration");
   const feeInput = document.getElementById("fee");
   const dueDateInput = document.getElementById("dueDate");
   const paymentInstructionsInput = document.getElementById("paymentInstructions");
@@ -20,7 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "/admin/home/accountability/viewEvent";
   });
 
-  // --- Get event ID from query string ---
+  // --- Get event ID ---
   const urlParams = new URLSearchParams(window.location.search);
   const eventId = urlParams.get("eid");
 
@@ -30,7 +29,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // --- Fetch event details ---
+  // ------------------------------------------
+  //   LOAD EVENT INTO FORM (FIXED FORMATTING)
+  // ------------------------------------------
   async function loadEventData() {
     try {
       const res = await fetch(`/api/events/${eventId}/details`);
@@ -40,18 +41,29 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const event = data.event;
 
-      // Populate form fields
       nameInput.value = event.event_name || "";
       typeSelect.value = event.type || "General";
       themeInput.value = event.theme || "";
       locationInput.value = event.location || "";
-      startDateInput.value = event.start_date || "";
-      timeInput.value = event.date_time ? new Date(event.date_time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : "";
-      endDateInput.value = event.end_date || "";
-      feeInput.value = event.amount !== null ? event.amount : "";
-      dueDateInput.value = event.payment_due || "";
-      paymentInstructionsInput.value = event.payment_instructions || "";
 
+      // FIXED: format for <input type="date">
+      startDateInput.value = event.start_date
+        ? event.start_date.split("T")[0]
+        : "";
+
+      // FIXED: format for <input type="time">
+      timeInput.value = event.date_time
+        ? new Date(event.date_time).toISOString().slice(11, 16)
+        : "";
+
+      endDateInput.value = event.end_date
+        ? event.end_date.split("T")[0]
+        : "";
+
+      feeInput.value = event.amount !== null ? event.amount : "";
+      dueDateInput.value = event.payment_due ? event.payment_due.split("T")[0] : "";
+
+      paymentInstructionsInput.value = event.payment_instructions || "";
     } catch (error) {
       console.error("Error loading event data:", error);
       alert("Error loading event data. Check console for details.");
@@ -60,23 +72,31 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   await loadEventData();
 
-  // --- Update event ---
+  // ------------------------------------------
+  //      UPDATE EVENT (MATCHES BACKEND)
+  // ------------------------------------------
   updateBtn.addEventListener("click", async () => {
     const updatedEvent = {
-      eventId,
-      event_name: nameInput.value.trim(),
-      type: typeSelect.value,
-      theme: themeInput.value.trim(),
-      location: locationInput.value.trim(),
-      start_date: startDateInput.value,
-      date_time: timeInput.value,
-      end_date: endDateInput.value,
-      amount: feeInput.value.trim(),
-      payment_due: dueDateInput.value,
-      payment_instructions: paymentInstructionsInput.value.trim(),
-    };
+  eventId,
+  event_name: nameInput.value.trim(),
+  type: typeSelect.value,
+  theme: themeInput.value.trim(),
+  location: locationInput.value.trim(),
+  start_date: startDateInput.value,
+  
+  // FIX: backend expects TIMESTAMP, not "HH:mm"
+  date_time: timeInput.value
+    ? `${startDateInput.value} ${timeInput.value}`
+    : null,
 
-    // Basic validation
+  end_date: endDateInput.value,
+  amount: feeInput.value.trim(),
+  payment_due: dueDateInput.value,
+  payment_instructions: paymentInstructionsInput.value.trim(),
+};
+
+
+    // FRONTEND Validation
     if (!updatedEvent.event_name || !updatedEvent.start_date) {
       alert("Event name and start date are required.");
       return;
@@ -92,11 +112,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       const data = await res.json();
 
       if (data.success) {
-        alert(data.message || "Event updated successfully!");
+        alert("Event updated successfully!");
         window.location.href = "/admin/home/accountability/viewEvent";
       } else {
         alert(data.message || "Failed to update event.");
       }
+
     } catch (error) {
       console.error("Error updating event:", error);
       alert("Error updating event. Check console for details.");

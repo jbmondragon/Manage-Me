@@ -43,7 +43,7 @@ app.get('/admin/home/section/editSection', sendPage('editSection.html'));
 app.get('/admin/home/members', sendPage('members.html'));
 app.get('/admin/home/members/addMembers', sendPage('addMembers.html'));
 app.get('/admin/home/members/viewMembers', sendPage('viewMembers.html'));
-app.get('/admin/home/members/editMembers', sendPage('editMembers.html'));
+app.get('/user/home/members/editMembers', sendPage('editMembers.html'));
 
 // Events / Accountability Pages
 app.get('/admin/home/accountability', sendPage('accountability_home.html'));
@@ -295,6 +295,55 @@ app.put('/admin/home/members/alter/:sid', async (req, res) => {
   }
 });
 
+/********************************************Kanang student personal info edit */
+// Get logged-in student info
+app.get('/api/students/me', async (req, res) => {
+    if (!req.session.email) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+    const student = await db.query(
+        `SELECT s.sid, s.last_name, s.first_name, s.middle_name, s.sex, s.email, sec.section_name
+         FROM students s
+         JOIN section sec ON s.section_id = sec.section_id
+         WHERE s.email = $1`,
+        [req.session.email]
+    );
+
+    if (student.rowCount === 0) return res.status(404).json({ success: false, message: "Student not found." });
+
+    res.json({ success: true, data: student.rows[0] });
+});
+
+// Update logged-in student info
+app.put('/api/students/update', async (req, res) => {
+    if (!req.session.email) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+    const { last_name, first_name, middle_name, sex, section_name, email } = req.body;
+
+    try {
+        const sectionResult = await db.query("SELECT section_id FROM section WHERE section_name = $1", [section_name]);
+        if (sectionResult.rowCount === 0) return res.json({ success: false, message: "Section not found." });
+
+        const section_id = sectionResult.rows[0].section_id;
+
+        await db.query(
+            `UPDATE students
+             SET last_name = $1, first_name = $2, middle_name = $3, sex = $4, section_id = $5, email = $6
+             WHERE email = $7`,
+            [last_name, first_name, middle_name, sex, section_id, email, req.session.email]
+        );
+
+        req.session.email = email; // Update session if email changed
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.json({ success: false, message: "Failed to update member." });
+    }
+});
+
+// Event endpoints (same logic as before) should also use req.session.email to fetch sid
+
+
+
 
 // Delete Member
 app.delete('/admin/home/members/delete/:sid', async (req, res) => {
@@ -309,7 +358,7 @@ app.delete('/admin/home/members/delete/:sid', async (req, res) => {
 
 /****************************** EVENT CRUD ******************************/
 // Add Event
-app.post('/api/events', async (req, res) => {
+app.post('/admin/home/events/add', async (req, res) => {
   const {
     nameOfEvent,
     eventType,
@@ -326,11 +375,16 @@ app.post('/api/events', async (req, res) => {
 
   if (!nameOfEvent || nameOfEvent.length > 100) 
     return res.status(400).json({ success: false, message: 'Invalid event name' });
+
   if (!startDate) 
     return res.status(400).json({ success: false, message: 'Start date is required' });
 
   try {
-    const existing = await pool.query('SELECT * FROM events WHERE event_name=$1', [nameOfEvent]);
+    const existing = await pool.query(
+      'SELECT * FROM events WHERE event_name=$1', 
+      [nameOfEvent]
+    );
+
     if (existing.rows.length > 0) 
       return res.status(400).json({ success: false, message: 'Event already exists' });
 
@@ -338,17 +392,33 @@ app.post('/api/events', async (req, res) => {
 
     const result = await pool.query(
       `INSERT INTO events (
-        event_name, type, theme, location, start_date, end_date, date_time, amount, payment_due, payment_instructions
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-      [nameOfEvent, eventType || 'General', theme || null, location || null, startDate, endDate || null, dateTime, amount || 0, dueDate || null, paymentInstructions || null]
+        event_name, type, theme, location, 
+        start_date, end_date, date_time, 
+        amount, payment_due, payment_instructions
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+      RETURNING *`,
+      [
+        nameOfEvent,
+        eventType || 'General',
+        theme || null,
+        location || null,
+        startDate,
+        endDate || null,
+        dateTime,
+        amount || 0,
+        dueDate || null,
+        paymentInstructions || null
+      ]
     );
 
     res.status(201).json({ success: true, event: result.rows[0] });
+
   } catch (err) {
     console.error('Add event error:', err);
     res.status(500).json({ success: false, message: 'Server error adding event' });
   }
 });
+
 
 // Get All Events
 app.get('/api/events', async (req, res) => {
@@ -364,6 +434,7 @@ app.get('/api/events', async (req, res) => {
 
 /****************************** EVENT DETAIL & UPDATE ******************************/
 
+// Fetch single event for editing
 // Fetch single event for editing
 app.get('/api/events/:eid/details', async (req, res) => {
   const { eid } = req.params;
@@ -383,36 +454,83 @@ app.get('/api/events/:eid/details', async (req, res) => {
 });
 
 
-/// Update event details
-app.post('/admin/home/events/alter', async (req, res) => {
-  const { eventId, nameOfEvent, startDate, endDate, amount } = req.body;
 
-  if (!eventId || !nameOfEvent || !startDate || !endDate || amount == null) {
-    return res.status(400).json({ success: false, message: 'Missing required fields' });
+// Update event details
+app.post('/admin/home/events/alter', async (req, res) => {
+  const {
+    eventId,
+    event_name,
+    type,
+    theme,
+    location,
+    start_date,
+    date_time,
+    end_date,
+    amount,
+    payment_due,
+    payment_instructions
+  } = req.body;
+
+  // Required fields
+  if (!eventId || !event_name || !start_date) {
+    return res.status(400).json({
+      success: false,
+      message: 'Missing required fields: eventId, event_name, start_date'
+    });
   }
 
   try {
     const result = await pool.query(
       `UPDATE events
-       SET event_name=$1,
-           start_date=$2,
-           end_date=$3,
-           amount=$4
-       WHERE eid=$5
+       SET event_name = $1,
+           type = $2,
+           theme = $3,
+           location = $4,
+           start_date = $5,
+           date_time = $6,
+           end_date = $7,
+           amount = $8,
+           payment_due = $9,
+           payment_instructions = $10
+       WHERE eid = $11
        RETURNING *`,
-      [nameOfEvent, startDate, endDate, amount, eventId]
+      [
+        event_name,
+        type || 'General',
+        theme || null,
+        location || null,
+        start_date,                         // must be YYYY-MM-DD (frontend fixed)
+        date_time || null,                  // must be HH:mm (frontend fixed)
+        end_date || null,
+        amount ? Number(amount) : 0,
+        payment_due || null,
+        payment_instructions || null,
+        eventId
+      ]
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Event not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'Event not found'
+      });
     }
 
-    res.json({ success: true, message: 'Event updated successfully', event: result.rows[0] });
+    res.json({
+      success: true,
+      message: 'Event updated successfully',
+      event: result.rows[0]
+    });
+
   } catch (err) {
     console.error('Update event error:', err);
-    res.status(500).json({ success: false, message: 'Server error updating event' });
+    res.status(500).json({
+      success: false,
+      message: 'Server error updating event'
+    });
   }
 });
+
 
 
 
