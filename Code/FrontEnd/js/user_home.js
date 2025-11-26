@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Logout
     logoutBtn.addEventListener('click', async () => {
         await fetch('/logout', { method: 'POST' });
-        window.location.href = '/login';
+        window.location.href = '/';
     });
 
     // Navigate to Edit Personal Info

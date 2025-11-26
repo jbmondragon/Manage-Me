@@ -9,6 +9,14 @@ const ngrok = require('ngrok');
 const app = express();
 const port = process.env.PORT || 3000;
 const host = process.env.HOST || '0.0.0.0';
+const session = require("express-session");
+app.use(session({
+    secret: "your-secret-key",
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } // secure must be false when not using HTTPS
+}));
+
 
 // Middleware
 app.use(cors());
@@ -224,11 +232,19 @@ app.post('/admin/home/members/add', async (req, res) => {
 /***************************View All Members*****************************************/
 app.get('/admin/home/members/list', async (req, res) => {
   try {
-    // Fetch all members, include section name from students table
+    // Fetch all members, include section name from section table
     const result = await pool.query(`
-      SELECT sid, first_name, last_name, middle_name, sex, section, email
-      FROM students
-      ORDER BY last_name, first_name
+      SELECT 
+        s.sid, 
+        s.first_name, 
+        s.last_name, 
+        s.middle_name, 
+        s.sex, 
+        sec.section_name AS section, 
+        s.email
+      FROM students s
+      LEFT JOIN section sec ON s.section_id = sec.section_id
+      ORDER BY s.last_name, s.first_name
     `);
 
     res.json({ success: true, members: result.rows });
@@ -237,6 +253,7 @@ app.get('/admin/home/members/list', async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to fetch members' });
   }
 });
+
 
 
 // Get Member by SID
@@ -298,9 +315,10 @@ app.put('/admin/home/members/alter/:sid', async (req, res) => {
 /********************************************Kanang student personal info edit */
 // Get logged-in student info
 app.get('/api/students/me', async (req, res) => {
-    if (!req.session.email) return res.status(401).json({ success: false, message: "Unauthorized" });
+    if (!req.session.email)
+        return res.status(401).json({ success: false, message: "Unauthorized" });
 
-    const student = await db.query(
+    const student = await pool.query(
         `SELECT s.sid, s.last_name, s.first_name, s.middle_name, s.sex, s.email, sec.section_name
          FROM students s
          JOIN section sec ON s.section_id = sec.section_id
@@ -308,10 +326,12 @@ app.get('/api/students/me', async (req, res) => {
         [req.session.email]
     );
 
-    if (student.rowCount === 0) return res.status(404).json({ success: false, message: "Student not found." });
+    if (student.rowCount === 0)
+        return res.status(404).json({ success: false, message: "Student not found." });
 
     res.json({ success: true, data: student.rows[0] });
 });
+
 
 // Update logged-in student info
 app.put('/api/students/update', async (req, res) => {
@@ -320,7 +340,7 @@ app.put('/api/students/update', async (req, res) => {
     const { last_name, first_name, middle_name, sex, section_name, email } = req.body;
 
     try {
-        const sectionResult = await db.query("SELECT section_id FROM section WHERE section_name = $1", [section_name]);
+        const sectionResult = await pool.query("SELECT section_id FROM section WHERE section_name = $1", [section_name]);
         if (sectionResult.rowCount === 0) return res.json({ success: false, message: "Section not found." });
 
         const section_id = sectionResult.rows[0].section_id;
@@ -434,7 +454,6 @@ app.get('/api/events', async (req, res) => {
 
 /****************************** EVENT DETAIL & UPDATE ******************************/
 
-// Fetch single event for editing
 // Fetch single event for editing
 app.get('/api/events/:eid/details', async (req, res) => {
   const { eid } = req.params;

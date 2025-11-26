@@ -7,6 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Redirect to the user login page when clicked
   loginButton.addEventListener('click', () => {
-    window.location.href = '/user/login'; // Make sure this matches your user login route
+    window.location.href = '/admin/loginPage';
   });
 });

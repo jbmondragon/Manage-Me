@@ -6,19 +6,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     backBtn.addEventListener('click', () => window.location.href = '/user/home');
 
     // Load current student info
-    const res = await fetch('/api/students/me');
-    const result = await res.json();
-    if (result.success) {
-        const data = result.data;
-        document.getElementById('studentNumber').value = data.sid;
-        document.getElementById('studentNumber').readOnly = true; // SID should not be editable
-        document.getElementById('lastName').value = data.last_name;
-        document.getElementById('firstName').value = data.first_name;
-        document.getElementById('middleName').value = data.middle_name;
-        document.getElementById('sex').value = data.sex;
-        document.getElementById('section').value = data.section_name;
-        document.getElementById('email').value = data.email;
-    }
+const res = await fetch('/api/students/me', { credentials: "include" });
+const result = await res.json();
+if (result.success) {
+    const data = result.data;
+    document.getElementById('studentNumber').value = data.sid;
+    document.getElementById('studentNumber').readOnly = true;
+    document.getElementById('lastName').value = data.last_name;
+    document.getElementById('firstName').value = data.first_name;
+    document.getElementById('middleName').value = data.middle_name || '';
+    document.getElementById('sex').value = data.sex;
+    document.getElementById('section').value = data.section_name || '';
+    document.getElementById('email').value = data.email;
+}
+
 
     // Update info
     updateBtn.addEventListener('click', async () => {
@@ -31,7 +32,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             email: document.getElementById('email').value.trim()
         };
 
-        // Simple validation
         if (!studentData.last_name || !studentData.first_name || !studentData.sex || !studentData.section_name || !studentData.email) {
             message.textContent = "Please fill in all required fields.";
             message.style.color = "red";
@@ -42,8 +42,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const updateRes = await fetch('/api/students/update', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: "include",
                 body: JSON.stringify(studentData)
             });
+
             const updateResult = await updateRes.json();
 
             if (updateResult.success) {
