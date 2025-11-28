@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const messageEl = document.getElementById('message');
   const addBtn = document.getElementById('addToDatabaseBtn');
 
+  // Back button
   if (backBtn) {
     backBtn.addEventListener('click', () => {
       window.location.href = '/admin/home/members';
@@ -17,7 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (data.success) {
         sectionSelect.innerHTML = `<option value="">-- Select Section --</option>` +
-          data.sections.map(s => `<option value="${String(s.section_name)}">${s.section_name}</option>`).join('');
+          data.sections
+            .map(s => `<option value="${s.section_id}">${s.section_name}</option>`)
+            .join('');
       } else {
         messageEl.innerText = 'Failed to load sections.';
         messageEl.style.color = 'red';
@@ -33,15 +36,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Add member
   addBtn.addEventListener('click', async () => {
-    const studentNumber = String(document.getElementById('studentNumber').value.trim());
-    const lastName = String(document.getElementById('lastName').value.trim());
-    const firstName = String(document.getElementById('firstName').value.trim());
-    const middleName = String(document.getElementById('middleName').value.trim());
-    const sex = String(document.getElementById('sex').value);
-    const section = String(sectionSelect.value);
-    const email = String(document.getElementById('email').value.trim());
+    const studentNumber = document.getElementById('studentNumber').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const firstName = document.getElementById('firstName').value.trim();
+    const middleName = document.getElementById('middleName').value.trim();
+    const sex = document.getElementById('sex').value;
+    const sectionID = sectionSelect.value; // ID, not name
+    const email = document.getElementById('email').value.trim();
 
-    // Validation
+    // Validation regex
     const studentNumberRegex = /^[0-9]{12}$/;
     const nameRegex = /^[a-zA-Z\s\-]{1,50}$/;
     const sexRegex = /^(Male|Female)$/i;
@@ -52,14 +55,14 @@ document.addEventListener('DOMContentLoaded', () => {
       return alert('Invalid name format.');
     }
     if (!sexRegex.test(sex)) return alert('Please select a valid sex.');
-    if (!section) return alert('Please select a section.');
+    if (!sectionID) return alert('Please select a section.');
     if (!emailRegex.test(email)) return alert('Invalid email format.');
 
     try {
       const response = await fetch('/admin/home/members/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentNumber, lastName, firstName, middleName, sex, section, email })
+        body: JSON.stringify({ studentNumber, lastName, firstName, middleName, sex, sectionID, email })
       });
 
       const data = await response.json();

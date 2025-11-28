@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const url = query ? `/api/sections?search=${encodeURIComponent(query)}` : '/api/sections';
       const response = await fetch(url);
+      if (!response.ok) throw new Error('Network response was not ok');
+
       const result = await response.json();
 
       if (!result.success) {
@@ -25,12 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      if (result.sections.length === 0) {
+      if (!result.sections || result.sections.length === 0) {
         membersList.innerHTML = '<p>No sections found.</p>';
         return;
       }
 
-      // Render sections (no click functionality)
+      // Render sections
       membersList.innerHTML = result.sections.map(section => `
         <div class="section-item" data-section-id="${section.section_id}">
           <div class="section-info">
@@ -48,8 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `).join('');
 
-      // Edit button
-      document.querySelectorAll('.edit-btn').forEach(btn => {
+      // Attach Edit and Delete handlers
+      membersList.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const sectionDiv = btn.closest('.section-item');
           const sectionId = sectionDiv.getAttribute('data-section-id');
@@ -57,8 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       });
 
-      // Delete button
-      document.querySelectorAll('.delete-btn').forEach(btn => {
+      membersList.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
           const sectionDiv = btn.closest('.section-item');
           const sectionId = sectionDiv.getAttribute('data-section-id');
@@ -90,17 +91,16 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchSections();
 
   // Search functionality
+  const handleSearch = () => {
+    const query = searchInput.value.trim();
+    fetchSections(query);
+  };
+
   if (searchBtn) {
-    searchBtn.addEventListener('click', () => {
-      const query = searchInput.value.trim();
-      fetchSections(query);
-    });
+    searchBtn.addEventListener('click', handleSearch);
   }
 
   searchInput.addEventListener('keypress', e => {
-    if (e.key === 'Enter') {
-      const query = searchInput.value.trim();
-      fetchSections(query);
-    }
+    if (e.key === 'Enter') handleSearch();
   });
 });

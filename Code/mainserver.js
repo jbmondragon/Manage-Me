@@ -110,16 +110,27 @@ app.post('/api/sections', async (req, res) => {
   }
 });
 
-// Get All Sections
+// Get All Sections with optional search
 app.get('/api/sections', async (req, res) => {
+  const { search } = req.query;
   try {
-    const result = await pool.query('SELECT * FROM section ORDER BY section_name ASC');
+    let result;
+    if (search) {
+      result = await pool.query(
+        'SELECT * FROM section WHERE LOWER(section_name) LIKE LOWER($1) ORDER BY section_name ASC',
+        [`%${search}%`]
+      );
+    } else {
+      result = await pool.query('SELECT * FROM section ORDER BY section_name ASC');
+    }
     res.json({ success: true, sections: result.rows });
   } catch (err) {
     console.error('Get sections error:', err);
     res.status(500).json({ success: false, message: 'Failed to fetch sections' });
   }
 });
+
+
 
 // Get Section by ID
 app.get('/api/sections/:id', async (req, res) => {
@@ -176,17 +187,23 @@ app.delete('/api/sections/:id', async (req, res) => {
 // Add Member
 /***************************Route for add member*****************************************/
 
+// Add Member
 app.post('/admin/home/members/add', async (req, res) => {
-  let { studentNumber, lastName, firstName, middleName, sex, section, email } = req.body;
+  let { studentNumber, lastName, firstName, middleName, sex, sectionID, email } = req.body;
 
   // Convert to strings explicitly
-  studentNumber = String(studentNumber);
-  lastName = String(lastName);
-  firstName = String(firstName);
-  middleName = middleName ? String(middleName) : '';
-  sex = String(sex);
-  section = String(section);
-  email = String(email);
+  studentNumber = String(studentNumber).trim();
+  lastName = String(lastName).trim();
+  firstName = String(firstName).trim();
+  middleName = middleName ? String(middleName).trim() : '';
+  sex = String(sex).trim();
+  email = String(email).trim();
+
+  // Convert sectionID to integer
+  sectionID = parseInt(sectionID);
+  if (isNaN(sectionID)) {
+    return res.json({ success: false, message: 'Invalid section ID.' });
+  }
 
   // Validation regex
   const studentNumberRegex = /^[0-9]{12}$/;
@@ -200,7 +217,6 @@ app.post('/admin/home/members/add', async (req, res) => {
     !nameRegex.test(firstName) ||
     (middleName && !nameRegex.test(middleName)) ||
     !sexRegex.test(sex) ||
-    !section || // section must not be empty
     !emailRegex.test(email)
   ) {
     return res.json({ success: false, message: 'Invalid input format.' });
@@ -213,19 +229,21 @@ app.post('/admin/home/members/add', async (req, res) => {
       return res.json({ success: false, message: 'Student number already exists.' });
     }
 
-    // Insert new member
-    await pool.query(
-      `INSERT INTO students (sid, last_name, first_name, middle_name, sex, section, email)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [studentNumber, lastName, firstName, middleName, sex, section, email]
+    // Insert new member with section_id
+    const result = await pool.query(
+      `INSERT INTO students (sid, last_name, first_name, middle_name, sex, section_id, email)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING *`,
+      [studentNumber, lastName, firstName, middleName, sex, sectionID, email]
     );
 
-    res.json({ success: true, message: 'Member added successfully!' });
+    res.json({ success: true, message: 'Member added successfully!', student: result.rows[0] });
   } catch (err) {
     console.error('Database error:', err);
-    res.json({ success: false, message: 'Failed to add member.' });
+    res.status(500).json({ success: false, message: 'Failed to add member.' });
   }
 });
+
 
 
 
