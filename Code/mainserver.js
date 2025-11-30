@@ -1,3 +1,4 @@
+/****************************** IMPORTS & SETUP ******************************/
 require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
@@ -10,20 +11,21 @@ const app = express();
 const port = process.env.PORT || 3000;
 const host = process.env.HOST || '0.0.0.0';
 const session = require("express-session");
+
+/* Session setup */
 app.use(session({
     secret: "your-secret-key",
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false } // secure must be false when not using HTTPS
+    cookie: { secure: false }
 }));
 
-
-// Middleware
+/******************************* MIDDLEWARE ******************************/
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'FrontEnd')));
 
-// PostgreSQL pool
+/****************************** DATABASE POOL ******************************/
 const pool = new Pool({
   user: process.env.POSTGRES_USER,
   host: process.env.POSTGRES_HOST,
@@ -35,37 +37,46 @@ const pool = new Pool({
 /****************************** FRONTEND ROUTES ******************************/
 const sendPage = (file) => (req, res) => res.sendFile(path.join(__dirname, 'FrontEnd', file));
 
-// SuperMain & Admin
+/* Basic Pages */
 app.get('/', (req, res) => res.redirect('/admin'));
 app.get('/admin', sendPage('superMain.html'));
 app.get('/admin/loginPage', sendPage('admin_login.html'));
 app.get('/admin/home', sendPage('admin_home.html'));
+app.get('/about', sendPage('about.html'));
 
-// Section Pages
+/* Section Pages */
 app.get('/admin/home/section', sendPage('section.html'));
 app.get('/admin/home/section/addSection', sendPage('addSection.html'));
 app.get('/admin/home/section/viewSection', sendPage('viewSection.html'));
 app.get('/admin/home/section/editSection', sendPage('editSection.html'));
 
-// Members Pages
+/* Member Pages */
 app.get('/admin/home/members', sendPage('members.html'));
 app.get('/admin/home/members/addMembers', sendPage('addMembers.html'));
 app.get('/admin/home/members/viewMembers', sendPage('viewMembers.html'));
-app.get('/user/home/members/editMembers', sendPage('editMembers.html'));
+app.get('/admin/home/members/editMembers', sendPage('editMembers.html'));
 
-// Events / Accountability Pages
+
+/* Event Pages */
 app.get('/admin/home/accountability', sendPage('accountability_home.html'));
 app.get('/admin/home/accountability/addEvent', sendPage('addEvent.html'));
 app.get('/admin/home/accountability/viewEvent', sendPage('viewEvent.html'));
 app.get('/admin/home/accountability/editEvent', sendPage('editEvent.html'));
 
-// User Pages
+/* User Pages */
 app.get('/user/login', sendPage('app_user_login.html'));
 app.get('/user/login/registerEvent', sendPage('registerEvent.html'));
 app.get('/user/home', sendPage('user_home.html'));
 
+/* Dashboard Page */
+app.get('/admin/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, 'FrontEnd', 'admin_dashboard.html'));
+});
+
+
 /****************************** AUTH ROUTES ******************************/
-// Admin Login
+
+/* Admin Login */
 app.post('/admin/login', async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -78,7 +89,7 @@ app.post('/admin/login', async (req, res) => {
   }
 });
 
-// User Login
+/* User Login */
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -91,8 +102,12 @@ app.post('/login', async (req, res) => {
   }
 });
 
-/****************************** SECTION CRUD ******************************/
-// Add Section
+
+/*************************************************************************/
+/*                            SECTION CRUD                                /
+/*************************************************************************/
+
+/* Add Section */
 app.post('/api/sections', async (req, res) => {
   const { sectionName, gradeLevel, academicYear, adviser } = req.body;
   if (!sectionName || sectionName.length > 100) return res.status(400).json({ success: false, message: 'Invalid section name' });
@@ -110,7 +125,7 @@ app.post('/api/sections', async (req, res) => {
   }
 });
 
-// Get All Sections with optional search
+/* Get All Sections */
 app.get('/api/sections', async (req, res) => {
   const { search } = req.query;
   try {
@@ -130,9 +145,7 @@ app.get('/api/sections', async (req, res) => {
   }
 });
 
-
-
-// Get Section by ID
+/* Get Section by ID */
 app.get('/api/sections/:id', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM section WHERE section_id=$1', [req.params.id]);
@@ -144,7 +157,7 @@ app.get('/api/sections/:id', async (req, res) => {
   }
 });
 
-//Section List
+/* Get Sections List (ID and Name only) */
 app.get('/api/sections/list', async (req, res) => {
   try {
     const result = await pool.query('SELECT section_id, section_name FROM section ORDER BY section_name');
@@ -155,8 +168,7 @@ app.get('/api/sections/list', async (req, res) => {
   }
 });
 
-
-// Update Section
+/* Update Section */
 app.put('/api/sections/:id', async (req, res) => {
   const { section_name, grade_level, academic_year, adviser } = req.body;
   try {
@@ -172,7 +184,7 @@ app.put('/api/sections/:id', async (req, res) => {
   }
 });
 
-// Delete Section
+/* Delete Section */
 app.delete('/api/sections/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM section WHERE section_id=$1', [req.params.id]);
@@ -183,15 +195,16 @@ app.delete('/api/sections/:id', async (req, res) => {
   }
 });
 
-/****************************** MEMBER CRUD ******************************/
-// Add Member
-/***************************Route for add member*****************************************/
 
-// Add Member
+/*************************************************************************/
+/*                            Member CRUD                                /
+/*************************************************************************/
+
+/***************************Route for add member*****************************************/
 app.post('/admin/home/members/add', async (req, res) => {
   let { studentNumber, lastName, firstName, middleName, sex, sectionID, email } = req.body;
 
-  // Convert to strings explicitly
+  /* Input sanitization */
   studentNumber = String(studentNumber).trim();
   lastName = String(lastName).trim();
   firstName = String(firstName).trim();
@@ -199,13 +212,13 @@ app.post('/admin/home/members/add', async (req, res) => {
   sex = String(sex).trim();
   email = String(email).trim();
 
-  // Convert sectionID to integer
+  /* Convert sectionID to integer */
   sectionID = parseInt(sectionID);
   if (isNaN(sectionID)) {
     return res.json({ success: false, message: 'Invalid section ID.' });
   }
 
-  // Validation regex
+  /* Validation regex */
   const studentNumberRegex = /^[0-9]{12}$/;
   const nameRegex = /^[a-zA-Z\s\-]{1,50}$/;
   const sexRegex = /^(Male|Female)$/i;
@@ -223,13 +236,13 @@ app.post('/admin/home/members/add', async (req, res) => {
   }
 
   try {
-    // Check for duplicate student number
+    /* Check if student number already exists */
     const existing = await pool.query('SELECT * FROM students WHERE sid = $1', [studentNumber]);
     if (existing.rows.length > 0) {
       return res.json({ success: false, message: 'Student number already exists.' });
     }
 
-    // Insert new member with section_id
+    /* Insert new member */
     const result = await pool.query(
       `INSERT INTO students (sid, last_name, first_name, middle_name, sex, section_id, email)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -244,13 +257,10 @@ app.post('/admin/home/members/add', async (req, res) => {
   }
 });
 
-
-
-
 /***************************View All Members*****************************************/
 app.get('/admin/home/members/list', async (req, res) => {
   try {
-    // Fetch all members, include section name from section table
+    /* Fetch all members with section names */
     const result = await pool.query(`
       SELECT 
         s.sid, 
@@ -272,13 +282,25 @@ app.get('/admin/home/members/list', async (req, res) => {
   }
 });
 
+/***************************Update Member*****************************************/
 
-
-// Get Member by SID
+/* Get Member by SID */
 app.get('/admin/home/members/get/:sid', async (req, res) => {
+  const sidInt = parseInt(req.params.sid, 10);
+  if (isNaN(sidInt)) {
+    return res.status(400).json({ success: false, message: 'Invalid SID.' });
+  }
+
   try {
-    const result = await pool.query('SELECT * FROM students WHERE sid=$1', [req.params.sid]);
-    if (result.rows.length === 0) return res.json({ success: false, message: 'Member not found' });
+    const result = await pool.query(
+      'SELECT sid, last_name, first_name, middle_name, sex, section_id, email FROM students WHERE sid=$1',
+      [sidInt]
+    );
+
+    if (result.rows.length === 0) {
+      return res.json({ success: false, message: 'Member not found.' });
+    }
+
     res.json({ success: true, member: result.rows[0] });
   } catch (err) {
     console.error('Get member by SID error:', err);
@@ -286,41 +308,48 @@ app.get('/admin/home/members/get/:sid', async (req, res) => {
   }
 });
 
-// Update Member
+/* Update Member */
 app.put('/admin/home/members/alter/:sid', async (req, res) => {
-  const { sid } = req.params; // sid from URL
-  const { lastName, firstName, middleName, sex, section, email } = req.body;
+  const sidInt = parseInt(req.params.sid, 10);
+  if (isNaN(sidInt)) {
+    return res.status(400).json({ success: false, message: 'Invalid SID.' });
+  }
 
+  const { lastName, firstName, middleName, sex, sectionID, email } = req.body;
+
+  /* Validation regex */
   const nameRegex = /^[a-zA-Z\s\-]{1,50}$/;
   const sexRegex = /^(Male|Female|Other)$/i;
-  const sectionRegex = /^[A-Za-z0-9]{1,10}$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const sectionIDInt = parseInt(sectionID, 10);
 
   if (
     !nameRegex.test(lastName) || !nameRegex.test(firstName) ||
     (middleName && !nameRegex.test(middleName)) ||
-    !sexRegex.test(sex) || !sectionRegex.test(section) ||
+    !sexRegex.test(sex) || isNaN(sectionIDInt) ||
     !emailRegex.test(email)
   ) {
     return res.status(400).json({ success: false, message: 'Invalid input format.' });
   }
 
   try {
-    const existing = await pool.query('SELECT * FROM students WHERE sid = $1', [sid]);
+    /* Check if member exists */
+    const existing = await pool.query('SELECT * FROM students WHERE sid = $1', [sidInt]);
     if (existing.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Member not found.' });
     }
 
+    /* Update member details */
     await pool.query(
       `UPDATE students
        SET last_name = $2,
            first_name = $3,
            middle_name = $4,
            sex = $5,
-           section = $6,
+           section_id = $6,
            email = $7
        WHERE sid = $1`,
-      [sid, lastName, firstName, middleName || '', sex, section, email]
+      [sidInt, lastName, firstName, middleName || '', sex, sectionIDInt, email]
     );
 
     res.json({ success: true, message: 'Member updated successfully!' });
@@ -330,60 +359,9 @@ app.put('/admin/home/members/alter/:sid', async (req, res) => {
   }
 });
 
-/********************************************Kanang student personal info edit */
-// Get logged-in student info
-app.get('/api/students/me', async (req, res) => {
-    if (!req.session.email)
-        return res.status(401).json({ success: false, message: "Unauthorized" });
-
-    const student = await pool.query(
-        `SELECT s.sid, s.last_name, s.first_name, s.middle_name, s.sex, s.email, sec.section_name
-         FROM students s
-         JOIN section sec ON s.section_id = sec.section_id
-         WHERE s.email = $1`,
-        [req.session.email]
-    );
-
-    if (student.rowCount === 0)
-        return res.status(404).json({ success: false, message: "Student not found." });
-
-    res.json({ success: true, data: student.rows[0] });
-});
 
 
-// Update logged-in student info
-app.put('/api/students/update', async (req, res) => {
-    if (!req.session.email) return res.status(401).json({ success: false, message: "Unauthorized" });
-
-    const { last_name, first_name, middle_name, sex, section_name, email } = req.body;
-
-    try {
-        const sectionResult = await pool.query("SELECT section_id FROM section WHERE section_name = $1", [section_name]);
-        if (sectionResult.rowCount === 0) return res.json({ success: false, message: "Section not found." });
-
-        const section_id = sectionResult.rows[0].section_id;
-
-        await db.query(
-            `UPDATE students
-             SET last_name = $1, first_name = $2, middle_name = $3, sex = $4, section_id = $5, email = $6
-             WHERE email = $7`,
-            [last_name, first_name, middle_name, sex, section_id, email, req.session.email]
-        );
-
-        req.session.email = email; // Update session if email changed
-        res.json({ success: true });
-    } catch (err) {
-        console.error(err);
-        res.json({ success: false, message: "Failed to update member." });
-    }
-});
-
-// Event endpoints (same logic as before) should also use req.session.email to fetch sid
-
-
-
-
-// Delete Member
+/***************************Delete a Member*****************************************/
 app.delete('/admin/home/members/delete/:sid', async (req, res) => {
   try {
     await pool.query('DELETE FROM students WHERE sid=$1', [req.params.sid]);
@@ -394,8 +372,11 @@ app.delete('/admin/home/members/delete/:sid', async (req, res) => {
   }
 });
 
-/****************************** EVENT CRUD ******************************/
-// Add Event
+/*************************************************************************/
+/*                            SECTION CRUD                                /
+/*************************************************************************/
+
+/* Add Event */
 app.post('/admin/home/events/add', async (req, res) => {
   const {
     nameOfEvent,
@@ -458,7 +439,7 @@ app.post('/admin/home/events/add', async (req, res) => {
 });
 
 
-// Get All Events
+/* Get All Events */
 app.get('/api/events', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM events ORDER BY start_date DESC');
@@ -469,10 +450,9 @@ app.get('/api/events', async (req, res) => {
   }
 });
 
-
 /****************************** EVENT DETAIL & UPDATE ******************************/
 
-// Fetch single event for editing
+/* Get Event Details */
 app.get('/api/events/:eid/details', async (req, res) => {
   const { eid } = req.params;
 
@@ -490,9 +470,7 @@ app.get('/api/events/:eid/details', async (req, res) => {
   }
 });
 
-
-
-// Update event details
+/* Update Event Details */
 app.post('/admin/home/events/alter', async (req, res) => {
   const {
     eventId,
@@ -508,7 +486,7 @@ app.post('/admin/home/events/alter', async (req, res) => {
     payment_instructions
   } = req.body;
 
-  // Required fields
+  /* Validate required fields */
   if (!eventId || !event_name || !start_date) {
     return res.status(400).json({
       success: false,
@@ -536,8 +514,8 @@ app.post('/admin/home/events/alter', async (req, res) => {
         type || 'General',
         theme || null,
         location || null,
-        start_date,                         // must be YYYY-MM-DD (frontend fixed)
-        date_time || null,                  // must be HH:mm (frontend fixed)
+        start_date,
+        date_time || null,
         end_date || null,
         amount ? Number(amount) : 0,
         payment_due || null,
@@ -569,10 +547,7 @@ app.post('/admin/home/events/alter', async (req, res) => {
 });
 
 
-
-
-
-// Delete Event
+/* Delete Event */
 app.delete('/api/events/:eid', async (req, res) => {
   const { eid } = req.params;
   try {
@@ -586,6 +561,7 @@ app.delete('/api/events/:eid', async (req, res) => {
   }
 });
 
+/* Publish/Unpublish Event */
 app.put('/api/events/:eid/publish', async (req, res) => {
   const { eid } = req.params;
   const { is_published } = req.body;
@@ -599,6 +575,7 @@ app.put('/api/events/:eid/publish', async (req, res) => {
   }
 });
 
+/* Register/Unregister for Event */
 app.post('/api/events/:eid/register', async (req, res) => {
   const { eid } = req.params;
   const { sid, registered } = req.body;
@@ -617,7 +594,7 @@ app.post('/api/events/:eid/register', async (req, res) => {
 
 /****************************** EVENT PARTICIPANTS & ATTENDANCE ******************************/
 
-// Get participants for Payments (whether they have paid)
+/* Get participants for Event Participation (whether they paid) */
 app.get('/api/events/:eid/participants', async (req, res) => {
   const { eid } = req.params;
   try {
@@ -636,7 +613,7 @@ app.get('/api/events/:eid/participants', async (req, res) => {
   }
 });
 
-// Get attendees for Attendance (whether they attended)
+/* Get attendees for Event Attendance */
 app.get('/api/events/:eid/attendees', async (req, res) => {
   const { eid } = req.params;
   try {
@@ -655,7 +632,7 @@ app.get('/api/events/:eid/attendees', async (req, res) => {
   }
 });
 
-// Update attendees (POST)
+/* Update attendees for Event Attendance */
 app.post('/api/events/:eid/attendees', async (req, res) => {
   const { eid } = req.params;
   const { updates } = req.body; // [{sid, attended}, ...]
@@ -693,6 +670,76 @@ app.post('/api/events/:eid/attendees', async (req, res) => {
   }
 });
 
+/****************************** ANALYTICS ROUTES ******************************/
+
+/* Members by Section */
+app.get('/api/analytics/members/sections', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT sec.section_name, COUNT(s.sid) AS total_members
+      FROM section sec
+      LEFT JOIN students s ON sec.section_id = s.section_id
+      GROUP BY sec.section_name
+      ORDER BY total_members DESC
+    `);
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error('Members by section analytics error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch analytics' });
+  }
+});
+
+/* Gender Distribution */
+app.get('/api/analytics/members/gender', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT sex, COUNT(*) AS count
+      FROM students
+      GROUP BY sex
+    `);
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error('Gender distribution analytics error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch analytics' });
+  }
+});
+
+/* Event Type Distribution */
+app.get('/api/analytics/events/types', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT type, COUNT(*) AS count
+      FROM events
+      GROUP BY type
+      ORDER BY count DESC
+    `);
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error('Event type distribution analytics error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch analytics' });
+  }
+});
+
+/* Event Attendance */
+app.get('/api/analytics/events/attendance', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT e.event_name,
+             COUNT(ep.sid) AS registered,
+             COUNT(ea.sid) AS attended
+      FROM events e
+      LEFT JOIN event_participation ep ON e.eid = ep.eid
+      LEFT JOIN event_attendance ea ON e.eid = ea.eid
+      GROUP BY e.event_name
+      ORDER BY e.start_date DESC
+    `);
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error('Event attendance analytics error:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch analytics' });
+  }
+});
+
 
 /****************************** SERVER START ******************************/
 function getLocalIP() {
@@ -705,6 +752,7 @@ function getLocalIP() {
   return 'localhost';
 }
 
+/* Start server with optional ngrok */
 app.listen(port, host, async () => {
   const localIP = getLocalIP();
   console.log(`Server running at http://${localIP}:${port}`);

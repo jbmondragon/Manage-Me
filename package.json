@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "express-session": "^1.18.2",
+    "json2csv": "^6.0.0-alpha.2",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.11"
+  }
+}

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Analytics Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #121212; /* dark background */
+    color: #f0f0f0;
+    padding: 20px;
+  }
+
+  h2 {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1E90FF;
+    margin-bottom: 40px;
+  }
+
+  .chart-card {
+    max-width: 700px;
+    margin: 30px auto; /* vertical spacing */
+    background-color: #1f1f1f; /* dark card */
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+    padding: 30px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    opacity: 0;
+    transform: translateY(40px);
+    animation: fadeInUp 0.8s forwards;
+  }
+
+  .chart-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.85);
+  }
+
+  .chart-card h3 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+    color: #f0f0f0;
+  }
+
+  canvas {
+    width: 100% !important;
+    height: 350px !important;
+  }
+
+  @keyframes fadeInUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Optional: Scrollbar for dark theme */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #2c2c2c;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1E90FF;
+    border-radius: 10px;
+  }
+</style>
+</head>
+<body>
+
+<h2>Admin Analytics Dashboard</h2>
+
+<div class="chart-card">
+  <h3>Members per Section</h3>
+  <canvas id="membersSectionChart"></canvas>
+</div>
+
+<div class="chart-card">
+  <h3>Gender Distribution</h3>
+  <canvas id="genderChart"></canvas>
+</div>
+
+<div class="chart-card">
+  <h3>Event Type Distribution</h3>
+  <canvas id="eventTypeChart"></canvas>
+</div>
+
+<div class="chart-card">
+  <h3>Event Registration vs Attendance</h3>
+  <canvas id="eventAttendanceChart"></canvas>
+</div>
+
+<script>
+async function fetchData(endpoint) {
+  const res = await fetch(endpoint);
+  const data = await res.json();
+  return data.success ? data.data : [];
+}
+
+// Members per section
+fetchData('/api/analytics/members/sections').then(data => {
+  new Chart(document.getElementById('membersSectionChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.section_name),
+      datasets: [{
+        label: 'Total Members',
+        data: data.map(d => d.total_members),
+        backgroundColor: 'rgba(30,144,255,0.7)',
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      animation: { duration: 1000, easing: 'easeOutQuart' },
+      scales: {
+        x: { ticks: { color: '#f0f0f0' }, grid: { color: '#333' } },
+        y: { ticks: { color: '#f0f0f0' }, grid: { color: '#333' } }
+      }
+    }
+  });
+});
+
+// Gender distribution
+fetchData('/api/analytics/members/gender').then(data => {
+  new Chart(document.getElementById('genderChart').getContext('2d'), {
+    type: 'pie',
+    data: {
+      labels: data.map(d => d.sex),
+      datasets: [{
+        data: data.map(d => d.count),
+        backgroundColor: ['#1E90FF', '#FF4500', '#FFD700'],
+        borderWidth: 1
+      }]
+    },
+    options: { responsive: true, animation: { animateScale: true, duration: 1200 } }
+  });
+});
+
+// Event type distribution
+fetchData('/api/analytics/events/types').then(data => {
+  new Chart(document.getElementById('eventTypeChart').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: data.map(d => d.type),
+      datasets: [{
+        data: data.map(d => d.count),
+        backgroundColor: ['#FF4500', '#1E90FF', '#FFD700', '#32CD32', '#8A2BE2'],
+        borderWidth: 2
+      }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#f0f0f0' } } }, animation: { animateScale: true, duration: 1200 } }
+  });
+});
+
+// Event registration vs attendance
+fetchData('/api/analytics/events/attendance').then(data => {
+  new Chart(document.getElementById('eventAttendanceChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.event_name),
+      datasets: [
+        { label: 'Registered', data: data.map(d => d.registered), backgroundColor: 'rgba(30,144,255,0.7)', borderRadius: 5 },
+        { label: 'Attended', data: data.map(d => d.attended), backgroundColor: 'rgba(255,69,0,0.7)', borderRadius: 5 }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: { ticks: { color: '#f0f0f0' }, grid: { color: '#333' } },
+        y: { ticks: { color: '#f0f0f0' }, grid: { color: '#333' }, beginAtZero: true }
+      },
+      animation: { duration: 1200, easing: 'easeOutQuart' }
+    }
+  });
+});
+</script>
+
+</body>
+</html>

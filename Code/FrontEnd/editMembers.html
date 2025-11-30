@@ -7,7 +7,6 @@
     <script src="/js/editMembers.js" defer></script>
     <link rel="stylesheet" href="/css/editMembers.css">
 </head>
-
 <body>
     <!-- Top bar -->
     <div class="top-bar">
@@ -18,47 +17,61 @@
     <div class="container">
         <h1>Update Member</h1>
 
+        <!-- Student Number -->
         <div class="input-group">
             <label for="studentNumber">Student Number:</label>
-            <input type="text" id="studentNumber" placeholder="Enter Student Number" autocomplete="off">
+            <input type="text" id="studentNumber" placeholder="Enter Student Number" autocomplete="off" readonly>
         </div>
 
+        <!-- Last Name -->
         <div class="input-group">
             <label for="lastName">Last Name:</label>
             <input type="text" id="lastName" placeholder="Enter Last Name" autocomplete="off">
         </div>
 
+        <!-- First Name -->
         <div class="input-group">
             <label for="firstName">First Name:</label>
             <input type="text" id="firstName" placeholder="Enter First Name" autocomplete="off">
         </div>
 
+        <!-- Middle Name -->
         <div class="input-group">
             <label for="middleName">Middle Name:</label>
             <input type="text" id="middleName" placeholder="Enter Middle Name" autocomplete="off">
         </div>
 
+        <!-- Sex -->
         <div class="input-group">
             <label for="sex">Sex:</label>
-            <input type="text" id="sex" placeholder="Sex" autocomplete="off">
+            <select id="sex">
+                <option value="">-- Select Sex --</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
         </div>
 
+        <!-- Section -->
         <div class="input-group">
             <label for="section">Section:</label>
-            <input type="text" id="section" placeholder="Section" autocomplete="off">
+            <select id="section">
+                <option value="">Loading sections...</option>
+            </select>
         </div>
 
+        <!-- Email -->
         <div class="input-group">
             <label for="email">Email:</label>
-            <input type="text" id="email" placeholder="Enter Email" autocomplete="off">
+            <input type="email" id="email" placeholder="Enter Email" autocomplete="off">
         </div>
 
-        
-
+        <!-- Update Button -->
         <div class="button-group">
             <button id="addToDatabaseBtn">Update Member</button>
         </div>
 
+        <!-- Message -->
         <p id="message"></p>
     </div>
 </body>

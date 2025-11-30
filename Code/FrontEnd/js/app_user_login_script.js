@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const passwordField = document.getElementById('password');
   const usernameField = document.getElementById('username');
   const message = document.getElementById('message');
+  const forgotPasswordLink = document.getElementById('forgotPasswordLink'); // NEW
 
   // Top bar buttons
   const dashboardBtn = document.getElementById('dashboard');
@@ -60,19 +61,15 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // ----- NAVIGATION BUTTONS -----
-  dashboardBtn?.addEventListener('click', () => {
-    window.location.href = '/admin';
-  });
+  dashboardBtn?.addEventListener('click', () => window.location.href = '/admin');
+  aboutBtn?.addEventListener('click', () => window.location.href = '/about');
+  adminLoginBtn?.addEventListener('click', () => window.location.href = '/admin/loginPage');
+  homeBtn?.addEventListener('click', () => window.location.href = '/');
 
-  aboutBtn?.addEventListener('click', () => {
-    window.location.href = '/about';
-  });
-
-  adminLoginBtn?.addEventListener('click', () => {
-    window.location.href = '/admin/loginPage';
-  });
-
-  homeBtn?.addEventListener('click', () => {
-    window.location.href = '/';
+  // ----- FORGOT PASSWORD -----
+  forgotPasswordLink?.addEventListener('click', function(event) {
+    event.preventDefault(); // Prevent default link
+    alert("Feature under maintenance.");
+    window.location.href = '/user/login'; // Redirect back to login
   });
 });

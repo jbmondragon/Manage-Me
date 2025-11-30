@@ -1,1 +1,1 @@
-/admin/loginPage
+/about
