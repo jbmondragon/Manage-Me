@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!sectionID) return alert('Please select a section.');
     if (!emailRegex.test(email)) return alert('Invalid email format.');
 
+    /* Send POST request to add member */
     try {
       const response = await fetch('/admin/home/members/add', {
         method: 'POST',

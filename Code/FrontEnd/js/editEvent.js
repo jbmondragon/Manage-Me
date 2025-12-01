@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ------------------------------------------
-  //   LOAD EVENT INTO FORM (FIXED FORMATTING)
+  //   LOAD EVENT INTO FORM
   // ------------------------------------------
   async function loadEventData() {
     try {
@@ -46,12 +46,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       themeInput.value = event.theme || "";
       locationInput.value = event.location || "";
 
-      // FIXED: format for <input type="date">
+      /* format for <input type="date"> */
       startDateInput.value = event.start_date
         ? event.start_date.split("T")[0]
         : "";
 
-      // FIXED: format for <input type="time">
       timeInput.value = event.date_time
         ? new Date(event.date_time).toISOString().slice(11, 16)
         : "";
@@ -73,7 +72,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadEventData();
 
   // ------------------------------------------
-  //      UPDATE EVENT (MATCHES BACKEND)
+  //      UPDATE EVENT
   // ------------------------------------------
   updateBtn.addEventListener("click", async () => {
     const updatedEvent = {
@@ -84,7 +83,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   location: locationInput.value.trim(),
   start_date: startDateInput.value,
   
-  // FIX: backend expects TIMESTAMP, not "HH:mm"
+  /* Combine date and time for date_time */
   date_time: timeInput.value
     ? `${startDateInput.value} ${timeInput.value}`
     : null,

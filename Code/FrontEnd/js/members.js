@@ -1,3 +1,5 @@
+
+/* Redirect to home page */
 document.addEventListener('DOMContentLoaded', () => {
   const logoutBtn = document.getElementById('homeBtn');
   if (!logoutBtn) return;
@@ -7,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+/* Redirect to view members page */
 document.addEventListener('DOMContentLoaded', () => {
   const addMemberBtn = document.getElementById('addMemberBtn');
   if (!addMemberBtn) return;
@@ -16,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-
+/* View Members Button */
 document.addEventListener('DOMContentLoaded', () => {
   const viewMemberBtn = document.getElementById('viewMemberBtn');
   if (!viewMemberBtn) return;

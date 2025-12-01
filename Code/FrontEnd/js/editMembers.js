@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const sexRegex = /^(Male|Female|Other)$/i;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+    /* Check required fields */
     if (!updatedMember.lastName || !updatedMember.firstName ||
         !updatedMember.sex || !updatedMember.sectionID || !updatedMember.email) {
         messageEl.textContent = "Please fill in all required fields.";
@@ -98,6 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    /* Validate name formats */
     if (!nameRegex.test(updatedMember.lastName) || !nameRegex.test(updatedMember.firstName) ||
         (updatedMember.middleName && !nameRegex.test(updatedMember.middleName))) {
         messageEl.textContent = "Invalid name format.";
@@ -105,18 +107,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    /* Validate sex value */
     if (!sexRegex.test(updatedMember.sex)) {
         messageEl.textContent = "Invalid sex value.";
         messageEl.style.color = "red";
         return;
     }
 
+    /* Validate email format */
     if (!emailRegex.test(updatedMember.email)) {
         messageEl.textContent = "Invalid email format.";
         messageEl.style.color = "red";
         return;
     }
 
+    /* Send update request */
     try {
         const res = await fetch(`/admin/home/members/alter/${sid}`, {
             method: 'PUT',
@@ -126,12 +131,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const result = await res.json();
 
+        /* Handle response */
         if (result.success) {
-            // Show success message briefly
             messageEl.textContent = "Member updated successfully!";
             messageEl.style.color = "green";
 
-            // Redirect back to member list after 1 second
             setTimeout(() => {
                 window.location.href = '/admin/home/members';
             }, 1000);

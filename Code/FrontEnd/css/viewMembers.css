@@ -1,14 +1,43 @@
 /* ---------- Base ---------- */
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', Arial, sans-serif;
     display: flex;
     justify-content: center;
     align-items: flex-start;
     min-height: 100dvh;
     margin: 0;
-    background: #121212;
     color: #f0f0f0;
     padding: 20px 0;
+    position: relative;
+    overflow-x: hidden;
+    background: #121212;
+}
+
+/* Background image with overlay */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-image: url('/resources/bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: brightness(0.5);
+    z-index: -2;
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0,0,0,0.35);
+    z-index: -1;
 }
 
 /* Top bar */
@@ -16,33 +45,38 @@ body {
     position: absolute;
     top: 10px;
     right: 10px;
+    display: flex;
+    gap: 10px;
+    z-index: 5;
 }
 
 .top-bar button {
     padding: 8px 12px;
     border: none;
     border-radius: 6px;
-    background: #333;
+    background: rgba(51,51,51,0.9);
     color: #fff;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, transform 0.2s ease;
+    font-weight: 500;
 }
 .top-bar button:hover {
-    background: #555;
+    background: rgba(85,85,85,0.95);
+    transform: translateY(-1px);
 }
 
 /* Main container */
 .main-container {
     width: 90%;
     max-width: 700px;
-    padding: 20px;
-    border: 1px solid #333;
+    padding: 25px 20px;
     border-radius: 12px;
-    background: #1e1e1e;
+    background: rgba(30,30,30,0.95);
     display: flex;
     flex-direction: column;
     gap: 15px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.7);
+    z-index: 2;
 }
 
 /* Search bar */
@@ -65,7 +99,7 @@ body {
 .search-bar input:focus {
     outline: none;
     border-color: #888;
-    box-shadow: 0 0 4px rgba(200,200,200,0.4);
+    box-shadow: 0 0 6px rgba(200,200,200,0.4);
 }
 
 .search-bar button {
@@ -94,15 +128,15 @@ body {
     padding: 6px 12px;
     border-radius: 6px;
     border: none;
-    background: #333;
+    background: rgba(51,51,51,0.9);
     color: #fff;
     cursor: pointer;
     font-size: 0.9rem;
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, transform 0.2s ease;
 }
-
 .filter-buttons button:hover {
-    background: #555;
+    background: rgba(85,85,85,0.95);
+    transform: translateY(-1px);
 }
 
 /* Members list */
@@ -116,10 +150,16 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #2a2a2a;
-    padding: 10px 15px;
-    border-radius: 6px;
+    background: rgba(42,42,42,0.95);
+    padding: 12px 16px;
+    border-radius: 8px;
     color: #fff;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.member:hover {
+    background: rgba(50,50,50,0.95);
+    transform: translateY(-1px);
 }
 
 .member .actions button {
@@ -128,13 +168,11 @@ body {
     border-radius: 6px;
     border: none;
     cursor: pointer;
-    background: #444;
-    color: #fff;
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, transform 0.1s ease;
 }
 
 .member .actions button:hover {
-    background: #666;
+    transform: translateY(-1px);
 }
 
 .member .actions .edit {
@@ -145,6 +183,14 @@ body {
 .member .actions .delete {
     background: #ff5a5a;
     color: #fff;
+}
+
+/* Member name color */
+.member-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.6);
 }
 
 /* Responsive tweaks */
@@ -167,5 +213,17 @@ body {
 
     .search-bar button {
         width: 100%;
+    }
+
+    .member {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .member .actions {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
     }
 }

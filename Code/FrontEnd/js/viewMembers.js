@@ -10,9 +10,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   try {
+    /* Fetch members from API */
     const response = await fetch('/admin/home/members/list');
     const data = await response.json();
 
+    /* Handle API errors */
     if (!data.success) {
       membersList.innerHTML = `<div class="error">${data.message}</div>`;
       return;
@@ -20,10 +22,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const members = data.members;
 
-    // --- Extract unique sections from members ---
+    /* Extract unique sections for filter */
     const sections = [...new Set(members.map(m => m.section_name || m.section).filter(Boolean))];
 
-    // --- Populate dropdown dynamically ---
+    /* Populate filter dropdown */
     filterSelect.innerHTML = `<option value="all">All sections</option>`;
     sections.forEach(section => {
       const option = document.createElement('option');
@@ -32,9 +34,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       filterSelect.appendChild(option);
     });
 
+    /* Function to render members based on filter and search */
     const renderMembers = (filter = 'all', search = '') => {
       membersList.innerHTML = '';
-
       const filtered = members.filter(member => {
         const memberSection = member.section_name || member.section || '';
         const inSection = filter === 'all' || memberSection === filter;
@@ -48,6 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
+      /* Render each member */
       filtered.forEach(member => {
         const memberDiv = document.createElement('div');
         memberDiv.classList.add('member');
@@ -61,8 +64,10 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         `;
 
+        /* Append member to the list */
         membersList.appendChild(memberDiv);
 
+        /* Delete member functionality */
         memberDiv.querySelector('.delete')?.addEventListener('click', async () => {
           if (confirm(`Are you sure you want to delete ${member.first_name} ${member.last_name}?`)) {
             try {
@@ -81,6 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         });
 
+        /* Edit member functionality */
         memberDiv.querySelector('.edit')?.addEventListener('click', () => {
           window.location.href = `/admin/home/members/editMembers?sid=${member.sid}`;
         });

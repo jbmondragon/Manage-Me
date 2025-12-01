@@ -7,14 +7,45 @@ body {
   padding: 60px 10px;
   display: flex;
   justify-content: center;
+  position: relative;
+  overflow-x: hidden;
 }
 
+/* ---------- Background Image & Overlay ---------- */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: url('/resources/bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: brightness(0.5);
+  z-index: -2;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,0.35);
+  z-index: -1;
+}
+
+/* ---------- Container ---------- */
 .container {
   width: 100%;
   max-width: 900px;
   display: flex;
   flex-direction: column;
   gap: 35px;
+  z-index: 1;
 }
 
 /* ---------- Top Bar ---------- */
@@ -22,6 +53,7 @@ body {
   position: fixed;
   top: 15px;
   left: 15px;
+  z-index: 5;
 }
 
 .top-bar button {
@@ -46,11 +78,12 @@ h1, h2 {
   text-align: center;
   margin: 0 0 15px;
   color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.7);
 }
 
 /* ---------- Card Sections ---------- */
 .card {
-  background: #1e1e1e;
+  background: rgba(30,30,30,0.95);
   padding: 30px;
   border-radius: 14px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.7);
@@ -141,7 +174,7 @@ button:hover {
 }
 
 .event-card {
-  background: #2a2a2a;
+  background: rgba(42,42,42,0.95);
   padding: 20px;
   border-radius: 12px;
   border: 1px solid #333;

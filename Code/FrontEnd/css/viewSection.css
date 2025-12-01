@@ -1,189 +1,251 @@
-/* ---------- Base ---------- */
+/* ----------------------------- */
+/* Base Reset & Typography */
+/* ----------------------------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Inter", Arial, sans-serif;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100dvh;
-    margin: 0;
-    background: #121212;
-    color: #f0f0f0;
-    padding: 20px 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  margin: 0;
+  padding: 20px 0;
+  color: #f0f0f0;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Background Image with Overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: url('/resources/bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: brightness(0.5);
+  z-index: -2;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,0.35);
+  z-index: -1;
 }
 
 /* Top bar */
 .top-bar {
-    position: absolute;
-    top: 10px;
-    right: 10px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 10px;
+  z-index: 10;
 }
 
 .top-bar button {
-    padding: 8px 12px;
-    border: none;
-    border-radius: 6px;
-    background: #333;
-    color: #fff;
-    cursor: pointer;
-    transition: background 0.2s ease;
+  padding: 8px 12px;
+  border: 1px solid #ffffff;
+  border-radius: 6px;
+  background: rgba(34,34,34,0.85);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
+
 .top-bar button:hover {
-    background: #555;
+  background: #555;
+  transform: translateY(-1px);
+}
+
+.top-bar button.active {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
 }
 
 /* Main container */
 .main-container {
-    width: 90%;
-    max-width: 700px;
-    padding: 20px;
-    border: 1px solid #333;
-    border-radius: 12px;
-    background: #1e1e1e;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+  width: 90%;
+  max-width: 700px;
+  padding: 2.5rem;
+  border-radius: 12px;
+  background: rgba(30,30,30,0.85);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+  z-index: 0;
 }
 
 /* Search bar */
 .search-bar {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
 .search-bar input {
-    flex: 1;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #555;
-    background: #2a2a2a;
-    color: #fff;
-    font-size: 1rem;
+  flex: 1;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background: #2a2a2a;
+  color: #fff;
+  font-size: 1rem;
 }
 
 .search-bar input:focus {
-    outline: none;
-    border-color: #888;
-    box-shadow: 0 0 4px rgba(200,200,200,0.4);
+  outline: none;
+  border-color: #888;
+  box-shadow: 0 0 5px rgba(200,200,200,0.4);
 }
 
 .search-bar button {
-    padding: 10px 15px;
-    border-radius: 6px;
-    border: none;
-    background: #444;
-    color: #fff;
-    cursor: pointer;
-    transition: background 0.2s ease;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: none;
+  background: #444;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 .search-bar button:hover {
-    background: #666;
+  background: #666;
 }
 
-/* Members list (section list) */
+/* Members list */
 .members-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 /* Section item styling */
 .section-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    background: #2a2a2a;
-    padding: 15px 18px;
-    border-radius: 10px;
-    border: 1px solid #333;
-    transition: transform 0.2s ease, background 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: rgba(42,42,42,0.85);
+  padding: 18px 20px;
+  border-radius: 10px;
+  border: 1px solid #333;
+  transition: transform 0.2s ease, background 0.2s ease;
 }
 
 .section-item:hover {
-    background: #323232;
-    transform: translateY(-2px);
+  background: rgba(215, 90, 90, 0.7);
+  transform: translateY(-2px);
 }
 
 .section-info {
-    flex: 1;
+  flex: 1;
 }
 
 .section-name {
     margin: 0 0 8px 0;
-    font-size: 1.2rem;
-    color: #fff;
+    font-size: 1.3rem;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(245, 14, 11, 0.5);
     cursor: default;
 }
 
+
 .section-info p {
-    margin: 4px 0;
-    color: #ccc;
-    font-size: 0.95rem;
+  margin: 4px 0;
+  color: #fefafa;
+  font-size: 1rem;
 }
 
 /* Section buttons */
 .section-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .section-actions button {
-    padding: 6px 10px;
-    border: none;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
 }
 
 .section-actions button:hover {
-    transform: translateY(-1px);
+  transform: translateY(-1px);
 }
 
 /* Edit and Delete colors */
 .edit-btn {
-    background: #5a5aff;
-    color: #fff;
+  background: #5a5aff;
+  color: #fff;
 }
 
 .edit-btn:hover {
-    background: #7777ff;
+  background: #7777ff;
 }
 
 .delete-btn {
-    background: #ff5a5a;
-    color: #fff;
+  background: #ff5a5a;
+  color: #fff;
 }
 
 .delete-btn:hover {
-    background: #ff7676;
+  background: #ff7676;
 }
 
 /* Responsive tweaks */
 @media (max-width: 480px) {
-    .main-container {
-        padding: 15px;
-    }
+  .main-container {
+    padding: 1.5rem;
+  }
 
-    .search-bar {
-        flex-direction: column;
-    }
+  .search-bar {
+    flex-direction: column;
+  }
 
-    .search-bar button {
-        width: 100%;
-    }
+  .search-bar button {
+    width: 100%;
+  }
 
-    .section-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
+  .section-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
 
-    .section-actions {
-        flex-direction: row;
-        gap: 10px;
-    }
+  .section-actions {
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .section-name {
+    font-size: 1.1rem;
+  }
+
+  .section-info p {
+    font-size: 0.9rem;
+  }
+
+  .section-actions button {
+    font-size: 0.9rem;
+  }
 }

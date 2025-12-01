@@ -6,8 +6,35 @@ body {
   align-items: center;
   min-height: 100dvh;
   margin: 0;
-  background: #e5e5e5; /* soft gray background */
-  color: #222;
+  color: #111;
+  position: relative;
+  overflow-x: hidden;
+  background-color: #f0f0f0;
+}
+
+/* Background image with overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: url('/resources/bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: brightness(0.9);
+  z-index: -2;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(250,250,250,0.20);
+  z-index: -1;
 }
 
 /* Top bar */
@@ -17,19 +44,20 @@ body {
   right: 10px;
   display: flex;
   gap: 8px;
+  z-index: 5;
 }
 
 .top-bar button {
   padding: 8px 12px;
   border: none;
   border-radius: 6px;
-  background: #2b2b2b;
-  color: #f5f5f5;
+  background: #444;
+  color: #f9f9f9;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 .top-bar button:hover {
-  background: #444;
+  background: #222;
 }
 .top-bar .active {
   background: #000;
@@ -41,13 +69,14 @@ body {
   width: 100%;
   max-width: 360px;
   padding: 25px;
-  border: 1px solid #ccc;
   border-radius: 12px;
-  background: #f8f8f8; /* off-white, not pure white */
+  background: rgba(255,255,255,0.95);
   display: flex;
   flex-direction: column;
   gap: 15px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  z-index: 2;
+  border: 1px solid #ccc;
 }
 
 h1 {
@@ -111,7 +140,7 @@ h1 {
   transition: color 0.2s ease;
 }
 .password-wrapper button:hover {
-  color: #000;
+  color: #111;
 }
 
 /* Buttons */
@@ -128,7 +157,7 @@ h1 {
   padding: 10px 14px;
   border: none;
   border-radius: 6px;
-  background: #2c2c2c;
+  background: #444;
   color: #f9f9f9;
   font-size: 1rem;
   cursor: pointer;
@@ -136,7 +165,7 @@ h1 {
 }
 
 .button-group button:hover {
-  background: #000;
+  background: #222;
 }
 
 /* Forgot password */
@@ -146,12 +175,12 @@ h1 {
 }
 
 .forgot-password a {
-  color: #444;
+  color: #666;
   text-decoration: none;
   font-size: 0.9rem;
 }
 .forgot-password a:hover {
-  color: #000;
+  color: #111;
   text-decoration: underline;
 }
 

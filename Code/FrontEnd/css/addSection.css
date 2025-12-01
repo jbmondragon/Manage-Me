@@ -1,13 +1,42 @@
 /* ---------- Base ---------- */
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', Arial, sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100dvh;
     margin: 0;
-    background: #121212;
     color: #f0f0f0;
+    position: relative;
+    overflow-x: hidden;
+    background: #121212;
+}
+
+/* Background image with overlay */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-image: url('/resources/bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: brightness(0.5);
+    z-index: -2;
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0,0,0,0.35);
+    z-index: -1;
 }
 
 /* Top bar */
@@ -15,40 +44,47 @@ body {
     position: absolute;
     top: 10px;
     right: 10px;
+    display: flex;
+    gap: 10px;
+    z-index: 5;
 }
 
 .top-bar button {
     padding: 8px 12px;
     border: none;
     border-radius: 6px;
-    background: #333;
+    background: rgba(51,51,51,0.9);
     color: #fff;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, transform 0.2s ease;
+    font-weight: 500;
 }
 .top-bar button:hover {
-    background: #555;
+    background: rgba(85,85,85,0.95);
+    transform: translateY(-1px);
 }
 
 /* Main container */
 .container {
-    width: 100%;
-    max-width: 350px;
-    padding: 20px;
-    border: 1px solid #333;
+    width: 90%;
+    max-width: 400px;
+    padding: 25px 20px;
     border-radius: 12px;
-    background: #1e1e1e;
+    background: rgba(30,30,30,0.95);
     display: flex;
     flex-direction: column;
     gap: 15px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.7);
+    z-index: 2;
 }
 
+/* Heading */
 h1 {
     text-align: center;
-    margin-bottom: 10px;
-    font-size: 1.5rem;
+    margin-bottom: 15px;
+    font-size: 1.6rem;
     color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.6);
 }
 
 /* Input groups */
@@ -59,8 +95,8 @@ h1 {
 }
 
 .input-group label {
-    font-size: 0.9rem;
-    font-weight: bold;
+    font-size: 0.95rem;
+    font-weight: 600;
     color: #ccc;
 }
 
@@ -76,7 +112,7 @@ h1 {
 .input-group input:focus {
     outline: none;
     border-color: #888;
-    box-shadow: 0 0 4px rgba(200,200,200,0.4);
+    box-shadow: 0 0 6px rgba(200,200,200,0.4);
 }
 
 /* Buttons */
@@ -93,15 +129,16 @@ h1 {
     padding: 10px 14px;
     border: none;
     border-radius: 6px;
-    background: #444;
+    background: rgba(68,68,68,0.95);
     color: #fff;
     font-size: 1rem;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .button-group button:hover {
-    background: #666;
+    background: rgba(102,102,102,0.95);
+    transform: translateY(-1px);
 }
 
 /* Message */
@@ -109,7 +146,7 @@ h1 {
     text-align: center;
     margin-top: 10px;
     min-height: 18px;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     color: #ff5555;
 }
 
@@ -117,11 +154,11 @@ h1 {
 @media (max-width: 480px) {
     .container {
         margin: 0 15px;
-        padding: 15px;
+        padding: 20px 15px;
     }
 
     h1 {
-        font-size: 1.3rem;
+        font-size: 1.4rem;
     }
 
     .button-group {

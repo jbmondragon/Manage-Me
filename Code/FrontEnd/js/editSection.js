@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const backBtn = document.getElementById("backBtn");
   const saveBtn = document.getElementById("saveBtn");
 
-  // Extract ?id=123 from URL
+  /* Get section ID from URL */
   const urlParams = new URLSearchParams(window.location.search);
   const sectionId = urlParams.get("id");
 
@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // Load existing data
+  /* Load existing section details */
   const loadSection = async () => {
     try {
       const res = await fetch(`/api/sections/${sectionId}`);
@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   loadSection();
 
-  // Save changes
+  /* Save button */
   saveBtn.addEventListener("click", async () => {
     const updatedData = {
       section_name: document.getElementById("sectionName").value.trim(),
@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Back button
+  /* Back button */
   backBtn.addEventListener("click", () => {
     window.location.href = "/admin/home/section";
   });

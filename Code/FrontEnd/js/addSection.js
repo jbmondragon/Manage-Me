@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const addBtn = document.getElementById('addToDatabaseBtn');
   const messageEl = document.getElementById('message');
 
+  /* Add Section Button */
   addBtn.addEventListener('click', async () => {
     const sectionName = document.getElementById('sectionName').value.trim();
     const gradeLevel = document.getElementById('gradeLevel').value.trim();
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    /* Send POST request to add section */
     try {
       const response = await fetch('/api/sections', {
         method: 'POST',

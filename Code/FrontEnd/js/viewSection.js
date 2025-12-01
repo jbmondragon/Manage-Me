@@ -1,4 +1,3 @@
-// /js/viewSection.js
 
 document.addEventListener('DOMContentLoaded', () => {
   const backBtn = document.getElementById('backBtn');
@@ -6,33 +5,36 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchBtn = document.getElementById('searchBtn');
   const membersList = document.querySelector('.members-list');
 
-  // Back button
+  /* Back button functionality */
   if (backBtn) {
     backBtn.addEventListener('click', () => {
       window.location.href = '/admin/home/section';
     });
   }
 
-  // Fetch and display sections
+  /* Function to fetch and render sections */
   const fetchSections = async (query = '') => {
     try {
+      /* Fetch sections from API */
       const url = query ? `/api/sections?search=${encodeURIComponent(query)}` : '/api/sections';
       const response = await fetch(url);
+      /* Check for response status */
       if (!response.ok) throw new Error('Network response was not ok');
 
       const result = await response.json();
-
+      /* Handle errors from API */
       if (!result.success) {
         membersList.innerHTML = `<p style="color:red;">Error: ${result.message}</p>`;
         return;
       }
 
+      /* Handle no sections found */
       if (!result.sections || result.sections.length === 0) {
         membersList.innerHTML = '<p>No sections found.</p>';
         return;
       }
 
-      // Render sections
+      /* Render sections */
       membersList.innerHTML = result.sections.map(section => `
         <div class="section-item" data-section-id="${section.section_id}">
           <div class="section-info">
@@ -50,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `).join('');
 
-      // Attach Edit and Delete handlers
+      /* Add event listeners for edit and delete buttons */
       membersList.querySelectorAll('.edit-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const sectionDiv = btn.closest('.section-item');
@@ -59,14 +61,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       });
 
+      /* Add event listeners for edit and delete buttons */
       membersList.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
           const sectionDiv = btn.closest('.section-item');
           const sectionId = sectionDiv.getAttribute('data-section-id');
+          /* Confirm deletion */
           if (confirm('Are you sure you want to delete this section?')) {
             try {
               const res = await fetch(`/api/sections/${sectionId}`, { method: 'DELETE' });
               const data = await res.json();
+              /* Handle deletion response */
               if (data.success) {
                 alert('Section deleted successfully.');
                 fetchSections(searchInput.value.trim());
@@ -87,10 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Initial load
+  /* Initial fetch of sections */
   fetchSections();
 
-  // Search functionality
+  /* Search functionality */
   const handleSearch = () => {
     const query = searchInput.value.trim();
     fetchSections(query);

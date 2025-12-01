@@ -2,10 +2,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const createBtn = document.getElementById("createEventBtn");
   const backBtn = document.getElementById('backBtn');
 
+  /* Back Button */
   backBtn?.addEventListener('click', () => {
     window.location.href = '/admin/home/accountability';
   });
 
+  /* Create Event Button */
   createBtn?.addEventListener("click", async () => {
     const nameOfEvent = document.getElementById("eventName").value.trim();
     const eventType = document.getElementById("eventType").value;
@@ -21,11 +23,13 @@ document.addEventListener("DOMContentLoaded", () => {
       .getElementById("paymentInstructions")
       .value.trim();
 
+    /* Basic validation */
     if (!nameOfEvent || !startDate) {
-      alert("⚠️ Please fill in the Event Name and Start Date.");
+      alert("Please fill in the Event Name and Start Date.");
       return;
     }
 
+    /* Send POST request to add event */
     try {
       const res = await fetch("/admin/home/events/add", {
         method: "POST",
@@ -47,16 +51,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const data = await res.json();
 
+      /* Handle response */
       if (data.success) {
-        alert("✅ Event created successfully!");
+        alert("Event created successfully!");
         document.querySelectorAll("input, textarea").forEach((el) => (el.value = ""));
       } else {
-        alert(`⚠️ ${data.message}`);
+        alert(`${data.message}`);
       }
 
+    /* Catch errors */
     } catch (err) {
       console.error("Error creating event:", err);
-      alert("❌ Server error while creating event.");
+      alert("Server error while creating event.");
     }
   });
 });

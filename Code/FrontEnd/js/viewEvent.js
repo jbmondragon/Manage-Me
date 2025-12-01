@@ -31,9 +31,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // ======================== FETCH EVENTS ========================
   async function fetchEvents() {
     try {
+
+      /* Fetch events from API */
       const res = await fetch('/api/events');
       const data = await res.json();
 
+      /* Handle API response */
       if (data.success && Array.isArray(data.events)) {
         allEvents = data.events;
         populateYearDropdown(allEvents);
@@ -47,6 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  /* Populate year filter dropdown */
   function populateYearDropdown(events) {
     const years = [...new Set(events.map(e => new Date(e.start_date).getFullYear()))].sort((a,b) => b-a);
     filterSelect.innerHTML = '<option value="">All Years</option>';
@@ -58,6 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  /* Render events to the DOM */
   function renderEvents(events) {
     eventsList.innerHTML = '';
     if (!events.length) {
@@ -65,6 +70,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
+    /* Create event elements */
     events.forEach(event => {
       const eventDiv = document.createElement('div');
       eventDiv.classList.add('event');
@@ -97,6 +103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       `;
       eventsList.appendChild(eventDiv);
 
+      // VIEW PAYMENTS / ATTENDANCE
       eventDiv.querySelector('.event-info').addEventListener('click', () =>
         openEventChoiceModal(event.eid, event.event_name)
       );
@@ -177,6 +184,7 @@ editBtn.addEventListener('click', () => {
     }
   }
 
+  /* Render students to the payments modal */
   function renderStudents(students) {
     studentsTableBody.innerHTML = '';
     students.forEach(stu => {
@@ -239,6 +247,7 @@ editBtn.addEventListener('click', () => {
     attendeesModalTitle.textContent = `Attendees - ${eventName}`;
     attendeesModal.classList.remove('hidden');
 
+    /* Fetch attendees */
     try {
       const res = await fetch(`/api/events/${eid}/attendees`);
       const data = await res.json();
@@ -253,6 +262,7 @@ editBtn.addEventListener('click', () => {
     }
   }
 
+  /* Render attendees to the attendance modal */
   function renderAttendees(attendees) {
     attendeesTableBody.innerHTML = '';
     attendees.forEach(stu => {
@@ -268,6 +278,7 @@ editBtn.addEventListener('click', () => {
   }
 
   saveAttendeesBtn.addEventListener('click', async () => {
+    /* Gather attendance updates */
     const updates = Array.from(attendeesTableBody.querySelectorAll('input[type="checkbox"]'))
       .map(cb => ({ sid: cb.dataset.sid, attended: cb.checked }));
 
@@ -294,6 +305,7 @@ editBtn.addEventListener('click', () => {
   searchBtn.addEventListener('click', filterEvents);
   filterSelect.addEventListener('change', filterEvents);
 
+  /* Filter events based on search and year */
   function filterEvents() {
     const search = searchInput.value.toLowerCase();
     const year = filterSelect.value;

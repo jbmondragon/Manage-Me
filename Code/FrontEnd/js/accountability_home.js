@@ -1,3 +1,4 @@
+/* Back Button */
 document.addEventListener('DOMContentLoaded', () => {
   const backBtn = document.getElementById('backBtn');
   if (backBtn) {
@@ -7,8 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-
-
+/* Create Event Button */
 document.addEventListener('DOMContentLoaded', () => {
   const backBtn = document.getElementById('createBtn');
   if (backBtn) {
@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+/* View Event Button */
 document.addEventListener('DOMContentLoaded', () => {
   const backBtn = document.getElementById('viewBtn');
   if (backBtn) {

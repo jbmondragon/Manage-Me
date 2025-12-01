@@ -579,53 +579,83 @@ app.put('/api/events/:eid/publish', async (req, res) => {
 app.post('/api/events/:eid/register', async (req, res) => {
   const { eid } = req.params;
   const { sid, registered } = req.body;
+
   try {
     if (registered) {
-      await pool.query('INSERT INTO event_participation (sid, eid) VALUES ($1,$2) ON CONFLICT DO NOTHING', [sid, eid]);
+      await pool.query(
+        `INSERT INTO event_participation (sid, eid) 
+         VALUES ($1, $2) 
+         ON CONFLICT DO NOTHING`,
+        [sid, eid]
+      );
     } else {
-      await pool.query('DELETE FROM event_participation WHERE sid=$1 AND eid=$2', [sid, eid]);
+      await pool.query(
+        `DELETE FROM event_participation 
+         WHERE sid=$1 AND eid=$2`,
+        [sid, eid]
+      );
     }
+
     res.json({ success: true });
+
   } catch (err) {
     console.error('Registration error:', err);
     res.status(500).json({ success: false, message: 'Server error updating registration' });
   }
 });
 
+
 /****************************** EVENT PARTICIPANTS & ATTENDANCE ******************************/
 
 /* Get participants for Event Participation (whether they paid) */
 app.get('/api/events/:eid/participants', async (req, res) => {
   const { eid } = req.params;
+
   try {
     const result = await pool.query(`
-      SELECT s.sid, s.last_name, s.first_name, s.section,
-             CASE WHEN ep.sid IS NOT NULL THEN true ELSE false END AS paid
+      SELECT 
+        s.sid,
+        s.last_name,
+        s.first_name,
+        sec.section_name AS section,
+        CASE WHEN ep.sid IS NOT NULL THEN true ELSE false END AS paid
       FROM students s
-      LEFT JOIN event_participation ep ON s.sid = ep.sid AND ep.eid = $1
+      LEFT JOIN section sec ON sec.section_id = s.section_id
+      LEFT JOIN event_participation ep 
+            ON ep.sid = s.sid AND ep.eid = $1
       ORDER BY s.last_name, s.first_name
     `, [eid]);
 
     res.json({ success: true, participants: result.rows });
+
   } catch (err) {
     console.error('Fetch participants error:', err);
     res.status(500).json({ success: false, message: 'Failed to fetch participants' });
   }
 });
 
+
 /* Get attendees for Event Attendance */
 app.get('/api/events/:eid/attendees', async (req, res) => {
   const { eid } = req.params;
+
   try {
     const result = await pool.query(`
-      SELECT s.sid, s.last_name, s.first_name, s.section,
-             CASE WHEN ea.sid IS NOT NULL THEN true ELSE false END AS attended
+      SELECT 
+        s.sid,
+        s.last_name,
+        s.first_name,
+        sec.section_name AS section,
+        CASE WHEN ea.sid IS NOT NULL THEN true ELSE false END AS attended
       FROM students s
-      LEFT JOIN event_attendance ea ON s.sid = ea.sid AND ea.eid = $1
+      LEFT JOIN section sec ON sec.section_id = s.section_id
+      LEFT JOIN attendees ea 
+            ON ea.sid = s.sid AND ea.eid = $1
       ORDER BY s.last_name, s.first_name
     `, [eid]);
 
     res.json({ success: true, attendees: result.rows });
+
   } catch (err) {
     console.error('Fetch attendees error:', err);
     res.status(500).json({ success: false, message: 'Failed to fetch attendees' });
@@ -635,40 +665,43 @@ app.get('/api/events/:eid/attendees', async (req, res) => {
 /* Update attendees for Event Attendance */
 app.post('/api/events/:eid/attendees', async (req, res) => {
   const { eid } = req.params;
-  const { updates } = req.body; // [{sid, attended}, ...]
+  const { updates } = req.body;
 
-  if (!Array.isArray(updates)) return res.status(400).json({ success: false, message: 'Invalid data' });
+  if (!Array.isArray(updates))
+    return res.status(400).json({ success: false, message: 'Invalid data' });
 
   try {
     const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
+    await client.query('BEGIN');
 
-      for (const u of updates) {
-        if (u.attended) {
-          await client.query(`
-            INSERT INTO event_attendance (sid, eid) VALUES ($1, $2)
-            ON CONFLICT DO NOTHING
-          `, [u.sid, eid]);
-        } else {
-          await client.query(`DELETE FROM event_attendance WHERE sid=$1 AND eid=$2`, [u.sid, eid]);
-        }
+    for (const u of updates) {
+      if (u.attended) {
+        await client.query(
+          `INSERT INTO attendees (sid, eid)
+           VALUES ($1, $2)
+           ON CONFLICT DO NOTHING`,
+          [u.sid, eid]
+        );
+      } else {
+        await client.query(
+          `DELETE FROM attendees 
+           WHERE sid=$1 AND eid=$2`,
+          [u.sid, eid]
+        );
       }
-
-      await client.query('COMMIT');
-      res.json({ success: true });
-    } catch (err) {
-      await client.query('ROLLBACK');
-      console.error('Update attendees transaction error:', err);
-      res.status(500).json({ success: false, message: 'Failed to update attendance' });
-    } finally {
-      client.release();
     }
+
+    await client.query('COMMIT');
+    client.release();
+
+    res.json({ success: true });
+
   } catch (err) {
-    console.error('DB connection error:', err);
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('Update attendees error:', err);
+    res.status(500).json({ success: false, message: 'Failed to update attendance' });
   }
 });
+
 
 /****************************** ANALYTICS ROUTES ******************************/
 
@@ -726,11 +759,12 @@ app.get('/api/analytics/events/attendance', async (req, res) => {
     const result = await pool.query(`
       SELECT e.event_name,
              COUNT(ep.sid) AS registered,
-             COUNT(ea.sid) AS attended
+             COUNT(ea.sid) AS attended,
+             e.start_date
       FROM events e
       LEFT JOIN event_participation ep ON e.eid = ep.eid
-      LEFT JOIN event_attendance ea ON e.eid = ea.eid
-      GROUP BY e.event_name
+      LEFT JOIN attendees ea ON e.eid = ea.eid
+      GROUP BY e.event_name, e.start_date
       ORDER BY e.start_date DESC
     `);
     res.json({ success: true, data: result.rows });
@@ -739,6 +773,7 @@ app.get('/api/analytics/events/attendance', async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to fetch analytics' });
   }
 });
+
 
 
 /****************************** SERVER START ******************************/
