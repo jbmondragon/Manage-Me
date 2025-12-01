@@ -8,7 +8,7 @@ const os = require('os');
 const ngrok = require('ngrok');
 
 const app = express();
-const port = process.env.PORT || 3000;
+//const port = process.env.PORT || 3000;
 const host = process.env.HOST || '0.0.0.0';
 const session = require("express-session");
 
@@ -777,22 +777,24 @@ app.get('/api/analytics/events/attendance', async (req, res) => {
 
 
 /****************************** SERVER START ******************************/
-function getLocalIP() {
-  const interfaces = os.networkInterfaces();
-  for (const iface in interfaces) {
-    for (const addr of interfaces[iface]) {
-      if (addr.family === 'IPv4' && !addr.internal) return addr.address;
+const port = process.env.PORT || 3000;
+
+/* Health check endpoint */
+app.get('/health', (req, res) => res.send('OK'));
+
+/* Start server */
+app.listen(port, async () => {
+  console.log(`Server running on port ${port}`);
+
+  /* Optional: ngrok only for local development */
+  if (process.env.NODE_ENV !== 'production' && process.env.USE_NGROK === 'true') {
+    const ngrok = require('ngrok');
+    try {
+      const url = await ngrok.connect(port);
+      console.log(`Public URL via ngrok: ${url}`);
+    } catch (err) {
+      console.error('Ngrok failed to start:', err);
     }
   }
-  return 'localhost';
-}
-
-/* Start server with optional ngrok */
-app.listen(port, host, async () => {
-  const localIP = getLocalIP();
-  console.log(`Server running at http://${localIP}:${port}`);
-  if (process.env.USE_NGROK === 'true') {
-    const url = await ngrok.connect(port);
-    console.log(`Public URL via ngrok: ${url}`);
-  }
 });
+
