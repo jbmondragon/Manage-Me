@@ -1,8 +1,20 @@
 {
+  "name": "CMSC128WebApp",
+  "version": "1.0.0",
+  "description": "CMSC128 Web Application",
+  "main": "mainserver.js",
+  "scripts": {
+    "start": "cross-env NODE_ENV=production node mainserver.js"
+  },
   "dependencies": {
     "express-session": "^1.18.2",
     "json2csv": "^6.0.0-alpha.2",
     "node-cron": "^4.2.1",
-    "nodemailer": "^7.0.11"
-  }
+    "nodemailer": "^7.0.11",
+    "cross-env": "^7.0.3"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "license": "MIT"
 }
