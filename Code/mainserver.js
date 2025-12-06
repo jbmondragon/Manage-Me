@@ -6,34 +6,35 @@ const path = require('path');
 const cors = require('cors');
 const os = require('os');
 const session = require('express-session');
-const { createClient } = require('redis');
-const RedisStore = require('connect-redis')(session);
+const pgSession = require('connect-pg-simple')(session);
 const ngrok = require('ngrok');
 
 const app = express();
 const host = process.env.HOST || '0.0.0.0';
 
-/****************************** REDIS SESSION SETUP ******************************/
-const redisClient = createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379',
-  legacyMode: true // needed for connect-redis compatibility
+/****************************** POSTGRESQL SESSION SETUP ******************************/
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL, // your PostgreSQL URL from Render
+  ssl: { rejectUnauthorized: false }          // required for Render PostgreSQL
 });
-
-redisClient.connect().catch(console.error);
 
 app.use(
   session({
-    store: new RedisStore({ client: redisClient }),
+    store: new pgSession({
+      pool: pool,                // PostgreSQL connection pool
+      tableName: 'user_sessions' // optional, default 'session'
+    }),
     secret: process.env.SESSION_SECRET || 'super-secret-key', // use strong secret in production
-    resave: false,                // recommended
-    saveUninitialized: false,     // recommended
+    resave: false,              // recommended
+    saveUninitialized: false,   // recommended
     cookie: {
-      secure: process.env.NODE_ENV === 'production', // true if using HTTPS
+      secure: process.env.NODE_ENV === 'production', // only HTTPS in production
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24 // 1 day
     }
   })
 );
+
 
 /******************************* MIDDLEWARE ******************************/
 app.use(cors());
@@ -41,13 +42,13 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'FrontEnd')));
 
 /****************************** DATABASE POOL ******************************/
-const pool = new Pool({
-  user: process.env.POSTGRES_USER,
-  host: process.env.POSTGRES_HOST,
-  database: process.env.POSTGRES_DB,
-  password: process.env.POSTGRES_PASSWORD,
-  port: process.env.POSTGRES_PORT || 5432,
-});
+// const pool = new Pool({
+//   user: process.env.POSTGRES_USER,
+//   host: process.env.POSTGRES_HOST,
+//   database: process.env.POSTGRES_DB,
+//   password: process.env.POSTGRES_PASSWORD,
+//   port: process.env.POSTGRES_PORT || 5432,
+// });
 
 /****************************** FRONTEND ROUTES ******************************/
 const sendPage = (file) => (req, res) => res.sendFile(path.join(__dirname, 'FrontEnd', file));
