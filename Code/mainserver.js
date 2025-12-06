@@ -14,9 +14,10 @@ const host = process.env.HOST || '0.0.0.0';
 
 /****************************** POSTGRESQL SESSION SETUP ******************************/
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL, // your PostgreSQL URL from Render
-  ssl: { rejectUnauthorized: false }          // required for Render PostgreSQL
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false } // required if connecting to remote PostgreSQL
 });
+
 
 app.use(
   session({
