@@ -4,8 +4,8 @@
   "description": "CMSC128 Web Application",
   "main": "mainserver.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=production node mainserver.js",
-    "dev": "cross-env NODE_ENV=development nodemon mainserver.js"
+    "start": "cross-env NODE_ENV=production node Code/mainserver.js",
+    "dev": "cross-env NODE_ENV=development nodemon Code/mainserver.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -13,12 +13,12 @@
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "express-session": "^1.18.2",
+    "helmet": "^7.0.0",
     "json2csv": "^6.0.0-alpha.2",
     "node-cron": "^4.2.1",
     "nodemailer": "^7.0.11",
     "ngrok": "^4.0.0",
-    "pg": "^8.12.0",
-    "helmet": "^7.0.0"
+    "pg": "^8.12.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
