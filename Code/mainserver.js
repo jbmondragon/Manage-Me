@@ -4,7 +4,6 @@ const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
 const cors = require('cors');
-const os = require('os');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const ngrok = require('ngrok');
@@ -12,44 +11,39 @@ const ngrok = require('ngrok');
 const app = express();
 const host = process.env.HOST || '0.0.0.0';
 
-/****************************** POSTGRESQL SESSION SETUP ******************************/
+/****************************** POSTGRESQL POOL & SESSION ******************************/
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false } // required if connecting to remote PostgreSQL
+  ssl: { rejectUnauthorized: false } // required for remote Postgres
 });
 
-
-app.use(
-  session({
-    store: new pgSession({
-      pool: pool,                // PostgreSQL connection pool
-      tableName: 'user_sessions' // optional, default 'session'
-    }),
-    secret: process.env.SESSION_SECRET || 'super-secret-key', // use strong secret in production
-    resave: false,              // recommended
-    saveUninitialized: false,   // recommended
-    cookie: {
-      secure: process.env.NODE_ENV === 'production', // only HTTPS in production
-      httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24 // 1 day
-    }
+// Test DB connection on startup
+pool.connect()
+  .then(client => {
+    console.log('✅ Connected to PostgreSQL successfully!');
+    client.release();
   })
-);
+  .catch(err => console.error('❌ PostgreSQL connection error:', err));
 
+app.use(session({
+  store: new pgSession({
+    pool: pool,
+    tableName: 'user_sessions'
+  }),
+  secret: process.env.SESSION_SECRET || 'super-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24
+  }
+}));
 
 /******************************* MIDDLEWARE ******************************/
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'FrontEnd')));
-
-/****************************** DATABASE POOL ******************************/
-// const pool = new Pool({
-//   user: process.env.POSTGRES_USER,
-//   host: process.env.POSTGRES_HOST,
-//   database: process.env.POSTGRES_DB,
-//   password: process.env.POSTGRES_PASSWORD,
-//   port: process.env.POSTGRES_PORT || 5432,
-// });
 
 /****************************** FRONTEND ROUTES ******************************/
 const sendPage = (file) => (req, res) => res.sendFile(path.join(__dirname, 'FrontEnd', file));
@@ -73,7 +67,6 @@ app.get('/admin/home/members/addMembers', sendPage('addMembers.html'));
 app.get('/admin/home/members/viewMembers', sendPage('viewMembers.html'));
 app.get('/admin/home/members/editMembers', sendPage('editMembers.html'));
 
-
 /* Event Pages */
 app.get('/admin/home/accountability', sendPage('accountability_home.html'));
 app.get('/admin/home/accountability/addEvent', sendPage('addEvent.html'));
@@ -86,20 +79,18 @@ app.get('/user/login/registerEvent', sendPage('registerEvent.html'));
 app.get('/user/home', sendPage('user_home.html'));
 
 /* Dashboard Page */
-app.get('/admin/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'FrontEnd', 'admin_dashboard.html'));
-});
-
+app.get('/admin/dashboard', sendPage('admin_dashboard.html'));
 
 /****************************** AUTH ROUTES ******************************/
-
 /* Admin Login */
 app.post('/admin/login', async (req, res) => {
   const { username, password } = req.body;
   try {
-    const result = await pool.query('SELECT * FROM admin WHERE username=$1 AND password=$2', [username, password]);
-    if (result.rows.length > 0) res.json({ success: true, message: 'Login successful' });
-    else res.json({ success: false, message: 'Invalid credentials' });
+    const result = await pool.query(
+      'SELECT * FROM admin WHERE username=$1 AND password=$2',
+      [username, password]
+    );
+    res.json({ success: result.rows.length > 0, message: result.rows.length > 0 ? 'Login successful' : 'Invalid credentials' });
   } catch (err) {
     console.error('Admin login error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -110,21 +101,20 @@ app.post('/admin/login', async (req, res) => {
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   try {
-    const result = await pool.query('SELECT * FROM app_user WHERE username=$1 AND password=$2', [username, password]);
-    if (result.rows.length > 0) res.json({ success: true, message: 'Login successful' });
-    else res.json({ success: false, message: 'Invalid username or password' });
+    const result = await pool.query(
+      'SELECT * FROM app_user WHERE username=$1 AND password=$2',
+      [username, password]
+    );
+    res.json({ success: result.rows.length > 0, message: result.rows.length > 0 ? 'Login successful' : 'Invalid username or password' });
   } catch (err) {
     console.error('User login error:', err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
-
-/*************************************************************************/
-/*                            SECTION CRUD                                /
-/*************************************************************************/
-
-/* Add Section */
+/****************************** SECTION CRUD ******************************/
+// Add, Get, Update, Delete Sections (your original code can stay, just use pool)
+/* Example Add Section */
 app.post('/api/sections', async (req, res) => {
   const { sectionName, gradeLevel, academicYear, adviser } = req.body;
   if (!sectionName || sectionName.length > 100) return res.status(400).json({ success: false, message: 'Invalid section name' });
@@ -801,17 +791,15 @@ app.get('/health', (req, res) => res.send('OK'));
 
 /* Start server */
 app.listen(port, async () => {
-  console.log(`Server running on port ${port}`);
+  console.log(`🚀 Server running on port ${port}`);
 
   /* Optional: ngrok only for local development */
   if (process.env.NODE_ENV !== 'production' && process.env.USE_NGROK === 'true') {
-    const ngrok = require('ngrok');
     try {
       const url = await ngrok.connect(port);
-      console.log(`Public URL via ngrok: ${url}`);
+      console.log(`🌐 Public URL via ngrok: ${url}`);
     } catch (err) {
       console.error('Ngrok failed to start:', err);
     }
   }
 });
-
