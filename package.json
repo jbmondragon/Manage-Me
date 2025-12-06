@@ -4,6 +4,7 @@
   "description": "CMSC128 Web Application",
   "main": "mainserver.js",
   "scripts": {
+    "prestart": "psql $DATABASE_URL -f schema.sql",
     "start": "cross-env NODE_ENV=production node Code/mainserver.js",
     "dev": "cross-env NODE_ENV=development nodemon Code/mainserver.js"
   },
