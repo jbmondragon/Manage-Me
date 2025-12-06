@@ -5,20 +5,35 @@ const { Pool } = require('pg');
 const path = require('path');
 const cors = require('cors');
 const os = require('os');
+const session = require('express-session');
+const { createClient } = require('redis');
+const RedisStore = require('connect-redis')(session);
 const ngrok = require('ngrok');
 
 const app = express();
-//const port = process.env.PORT || 3000;
 const host = process.env.HOST || '0.0.0.0';
-const session = require("express-session");
 
-/* Session setup */
-app.use(session({
-    secret: "your-secret-key",
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false }
-}));
+/****************************** REDIS SESSION SETUP ******************************/
+const redisClient = createClient({
+  url: process.env.REDIS_URL || 'redis://localhost:6379',
+  legacyMode: true // needed for connect-redis compatibility
+});
+
+redisClient.connect().catch(console.error);
+
+app.use(
+  session({
+    store: new RedisStore({ client: redisClient }),
+    secret: process.env.SESSION_SECRET || 'super-secret-key', // use strong secret in production
+    resave: false,                // recommended
+    saveUninitialized: false,     // recommended
+    cookie: {
+      secure: process.env.NODE_ENV === 'production', // true if using HTTPS
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 // 1 day
+    }
+  })
+);
 
 /******************************* MIDDLEWARE ******************************/
 app.use(cors());
