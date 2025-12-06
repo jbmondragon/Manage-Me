@@ -14,7 +14,7 @@ const host = process.env.HOST || '0.0.0.0';
 /****************************** POSTGRESQL POOL & SESSION ******************************/
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false } // required for remote Postgres
+  ssl: { rejectUnauthorized: false }
 });
 
 // Test DB connection on startup
@@ -22,6 +22,7 @@ pool.connect()
   .then(client => {
     console.log('✅ Connected to PostgreSQL successfully!');
     client.release();
+    console.log(`📚 Using database: ${process.env.POSTGRES_DB || 'default_db'}`);
   })
   .catch(err => console.error('❌ PostgreSQL connection error:', err));
 
