@@ -170,11 +170,21 @@ EXECUTE FUNCTION register_existing_students_to_homecoming();
 -- ==============================
 
 INSERT INTO admin (username, password) VALUES
-('admin1', 'admin1')
+('admin1', 'admin1'),
+('maagut', 'P@ssw0rd1'),
+('jcanoy', 'P@ssw0rd2'),
+('rlopez', 'P@ssw0rd3'),
+('tsantos', 'P@ssw0rd4'),
+('dgarcia', 'P@ssw0rd5')
 ON CONFLICT (username) DO NOTHING;
 
 INSERT INTO app_user (username, password) VALUES
-('user1', 'user1')
+('user1', 'user1'),
+('jdoe', 'UserP@ss1'),
+('asmith', 'UserP@ss2'),
+('mbrown', 'UserP@ss3'),
+('ljohnson', 'UserP@ss4'),
+('kwilson', 'UserP@ss5')
 ON CONFLICT (username) DO NOTHING;
 
 INSERT INTO section (section_name, grade_level, academic_year, adviser) VALUES
