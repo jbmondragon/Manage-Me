@@ -163,23 +163,40 @@ WHEN (NEW.type = 'Homecoming')
 EXECUTE FUNCTION register_existing_students_to_homecoming();
 
 -- ==============================
--- Sample Data (safe inserts)
+-- Pre-migrated Datasets
 -- ==============================
-INSERT INTO admin (username, password) VALUES 
-('maagut', 'P@ssw0rd') ON CONFLICT (username) DO NOTHING;
+INSERT INTO admin (username, password) VALUES
+('admin1', 'admin1') ON CONFLICT (username) DO NOTHING;
 
 INSERT INTO app_user (username, password) VALUES
-('user', 'user') ON CONFLICT (username) DO NOTHING;
+('user1', 'user1') ON CONFLICT (username) DO NOTHING;
 
 INSERT INTO section (section_name, grade_level, academic_year, adviser) VALUES
-('Red', '12', '2020-2021', 'Mx. Lorielee Mae S. Solmayor') ON CONFLICT (section_name) DO NOTHING;
+('Red', '12', '2020-2021', 'Mx. Lorielee Mae S. Solmayor') ON CONFLICT (section_name) DO NOTHING,
+('Gas', '12', '2020-2021', 'Mx. Angel Locsina') ON CONFLICT (section_name) DO NOTHING,
+('Blue', '11', '2020-2021', 'Mx. John Doe') ON CONFLICT (section_name) DO NOTHING,
+('Green', '11', '2020-2021', 'Mx. Jane Smith') ON CONFLICT (section_name) DO NOTHING,
+('Yellow', '10', '2020-2021', 'Mx. Alice Johnson') ON CONFLICT (section_name) DO NOTHING,
+('Purple', '10', '2020-2021', 'Mx. Bob Brown') ON CONFLICT (section_name) DO NOTHING;
 
 INSERT INTO students (sid, last_name, first_name, middle_name, sex, section_id, email) VALUES
-('100000000000','Abogado','Gerson','','Male',1,'ga@gmail.com') ON CONFLICT (sid) DO NOTHING;
+('100000000000','Abogado','Gerson','','Male',1,'ga@gmail.com') ON CONFLICT (sid) DO NOTHING,
+('100000000001','Bautista','Maria','L.','Female',2,'bm@gmail.com') ON CONFLICT (sid) DO NOTHING,
+('100000000002','Cruz','Juan','D.','Male',3,'cj@gmail.com') ON CONFLICT (sid) DO NOTHING,
+('100000000003','Dela Vega','Ana','M.','Female',4,'da@gmail.com') ON CONFLICT (sid) DO NOTHING,
+('100000000004','Espinosa','Luis','R.','Male',5,'el@gmail.com') ON CONFLICT (sid) DO NOTHING;
 
 INSERT INTO events (event_name, type, theme, location, start_date, is_published) VALUES
-('Foundation Day', 'General', 'Celebrating our Legacy', 'University Grounds', '2025-10-01', TRUE) ON CONFLICT (event_name) DO NOTHING;
+('Foundation Day', 'General', 'Celebrating our Legacy', 'University Grounds', '2025-10-01', TRUE) ON CONFLICT (event_name) DO NOTHING,
+('Homecoming 2025', 'Homecoming', 'Welcome Back Alumni', 'Main Hall', '2025-11-15', TRUE) ON CONFLICT (event_name) DO NOTHING,
+('Science Fair', 'General', 'Innovate and Inspire', 'Science Building', '2025-09-20', TRUE) ON CONFLICT (event_name) DO NOTHING,
+('Sports Fest', 'General', 'Champions Unite', 'Sports Complex', '2025-08-10', TRUE) ON CONFLICT (event_name) DO NOTHING,
+('Cultural Night', 'General', 'Embracing Diversity', 'Auditorium', '2025-12-05', TRUE) ON CONFLICT (event_name) DO NOTHING,
+('Homecoming 2024', 'Homecoming', 'Reunion of Hearts', 'Grand Ballroom', '2024-11-20', TRUE) ON CONFLICT (event_name) DO NOTHING;
 
 INSERT INTO event_contribution (sid, eid, contribution_type, amount, hours_contributed, remarks) VALUES
-('100000000000', 1, 'Donation', 200.00, 0, 'Contributed to Foundation Day fundraising') 
-ON CONFLICT (sid, eid, contribution_type) DO NOTHING;
+('100000000000', 1, 'Donation', 200.00, 0, 'Contributed to Foundation Day fundraising') ON CONFLICT (sid, eid, contribution_type) DO NOTHING,
+('100000000001', 2, 'Volunteering', 0, 5.00, 'Helped organize Homecoming event') ON CONFLICT (sid, eid, contribution_type) DO NOTHING,
+('100000000002', 3, 'Donation', 150.00, 0, 'Supported Science Fair activities') ON CONFLICT (sid, eid, contribution_type) DO NOTHING,
+('100000000003', 4, 'Volunteering', 0, 3.50, 'Assisted in Sports Fest preparations') ON CONFLICT (sid, eid, contribution_type) DO NOTHING,
+('100000000004', 5, 'Donation', 100.00, 0, 'Contributed to Cultural Night events') ON CONFLICT (sid, eid, contribution_type) DO NOTHING;

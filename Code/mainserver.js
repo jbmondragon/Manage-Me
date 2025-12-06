@@ -20,22 +20,22 @@ const pool = new Pool({
 
 (async () => {
   try {
-    const sql = fs.readFileSync('./schema.sql', 'utf8'); // path to your schema file
+    const sql = fs.readFileSync('./schema.sql', 'utf8');
     await pool.query(sql);
-    console.log('✅ Schema applied successfully!');
+    console.log('Schema applied successfully!');
   } catch (err) {
-    console.error('❌ Failed to apply schema:', err);
+    console.error('Failed to apply schema:', err);
   }
 })();
 
-// Test DB connection on startup
+/* Test connection */
 pool.connect()
   .then(client => {
     console.log('Connected to PostgreSQL successfully!');
     client.release();
     console.log(`Using database: ${process.env.POSTGRES_DB || 'default_db'}`);
   })
-  .catch(err => console.error('❌ PostgreSQL connection error:', err));
+  .catch(err => console.error('PostgreSQL connection error:', err));
 
 app.use(session({
   store: new pgSession({
@@ -125,8 +125,8 @@ app.post('/login', async (req, res) => {
 });
 
 /****************************** SECTION CRUD ******************************/
-// Add, Get, Update, Delete Sections (your original code can stay, just use pool)
-/* Example Add Section */
+
+/* Add Section */
 app.post('/api/sections', async (req, res) => {
   const { sectionName, gradeLevel, academicYear, adviser } = req.body;
   if (!sectionName || sectionName.length > 100) return res.status(400).json({ success: false, message: 'Invalid section name' });
@@ -513,6 +513,7 @@ app.post('/admin/home/events/alter', async (req, res) => {
     });
   }
 
+  /* Update event in database */
   try {
     const result = await pool.query(
       `UPDATE events
@@ -798,18 +799,17 @@ app.get('/api/analytics/events/attendance', async (req, res) => {
 /****************************** SERVER START ******************************/
 const port = process.env.PORT || 3000;
 
-/* Health check endpoint */
 app.get('/health', (req, res) => res.send('OK'));
 
 /* Start server */
 app.listen(port, async () => {
-  console.log(`🚀 Server running on port ${port}`);
+  console.log(`**************Server running on port ${port}*********************`);
 
   /* Optional: ngrok only for local development */
   if (process.env.NODE_ENV !== 'production' && process.env.USE_NGROK === 'true') {
     try {
       const url = await ngrok.connect(port);
-      console.log(`🌐 Public URL via ngrok: ${url}`);
+      console.log(`************************** Public URL via ngrok: ${url}********************`);
     } catch (err) {
       console.error('Ngrok failed to start:', err);
     }
