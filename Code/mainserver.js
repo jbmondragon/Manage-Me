@@ -7,6 +7,7 @@ const cors = require('cors');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const ngrok = require('ngrok');
+const fs = require('fs');
 
 const app = express();
 const host = process.env.HOST || '0.0.0.0';
@@ -16,6 +17,18 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
+
+(async () => {
+  try {
+    const sql = fs.readFileSync('./schema.sql', 'utf8'); // path to your schema file
+    await pool.query(sql);
+    console.log('✅ Schema applied successfully!');
+  } catch (err) {
+    console.error('❌ Failed to apply schema:', err);
+  } finally {
+    pool.end();
+  }
+})();
 
 // Test DB connection on startup
 pool.connect()
