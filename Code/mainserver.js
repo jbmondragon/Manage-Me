@@ -25,17 +25,15 @@ const pool = new Pool({
     console.log('✅ Schema applied successfully!');
   } catch (err) {
     console.error('❌ Failed to apply schema:', err);
-  } finally {
-    pool.end();
   }
 })();
 
 // Test DB connection on startup
 pool.connect()
   .then(client => {
-    console.log('✅ Connected to PostgreSQL successfully!');
+    console.log('Connected to PostgreSQL successfully!');
     client.release();
-    console.log(`📚 Using database: ${process.env.POSTGRES_DB || 'default_db'}`);
+    console.log(`Using database: ${process.env.POSTGRES_DB || 'default_db'}`);
   })
   .catch(err => console.error('❌ PostgreSQL connection error:', err));
 
